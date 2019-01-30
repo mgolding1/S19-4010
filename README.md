@@ -52,3 +52,17 @@ git clone  https://github.com/Univ-Wyo-Education/S19-4010.git
 See: [https://gist.github.com/derhuerst/1b15ff4652a867391f03#file-mac-md](https://gist.github.com/derhuerst/1b15ff4652a867391f03#file-mac-md)
 If you are using other than Debian/Ubuntu for Linux see me and we will work 1-on-1 to get you setup and going.
 
+
+# Important!
+
+If you are sitting in on this class (not registered) then you need to send me an email at pschlump@uwyo.edu so that I have contact
+information for you.  I will send out (or my class assistant Chantelle) will send out email to everybody that we have our our
+list including the registered students.
+
+# Layout
+
+Lectures can be found in `./l`.  
+
+Assignments can be found in `./a`.
+
+
