@@ -1,7 +1,7 @@
 
 all: Intro-To-Go.html
 
-FR=../../Lectures/Lect-01
+FR=../../l/01
 
 Intro-To-Go.html: Intro-To-Go.md
 	markdown-cli --input=./Intro-To-Go.md --output=Intro-To-Go.html

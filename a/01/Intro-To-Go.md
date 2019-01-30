@@ -34,7 +34,7 @@ For Windows there is a `.msi` installer that is very good.  It will automaticall
 go into `C:\go\` and setup your permissions.  You can choose a different path for the install.
 Follow the instructions on the download site for Windows.
 
-Install at least version 1.10.3 of the language.   On mac you download .pkg and click on it.
+Install at least version 1.11.5 of the language.   On mac you download .pkg and click on it.
 On windows the .msi and run it (double click).  On Linux...  Follow the instructions on the
 download page for your flavor of Linux.
 
@@ -70,7 +70,7 @@ an old version from the system.  Choose this in the installer.
 Submit:
 
 1. run `go version` at the command line and capture the output.   Submit a 1 line file with the output
-in it.  You can cut paste or pipe the output to a file.  You should see a version around `go1.10` or `go1.10.3`.
+in it.  You can cut paste or pipe the output to a file.  You should see a version around `go1.11` or `go1.11.5`.
 
 
 
