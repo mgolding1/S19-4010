@@ -9,12 +9,11 @@ It is the one that is the most adaptable to change."
 1st. the news
 -----------------
 
-4. xyzzy
 1. AU - Research - linear scaling (similar to blockchain) 8000 tx per sec, don't specify latency.
-2. Java 4th garbage collector - tried it.  Provision at 20% before, now at 25% ok, at 30% boom.
-3. Did everybody in the class get a "key".
+2. Binance, the world’s largest cryptocurrency exchange by adjusted trading volume, has just made it easier for users to buy cryptocurrencies.
+3. ETH will reach 1M Tx per sec.
 4. California bill passed that defines things like "digital signature".
-
+5. Land registry in Mexico is moving onto blockchain.
 
 
 2nd. Purpose of a business
@@ -84,6 +83,65 @@ A slice
 
 What is a slice?
 
+Allocating memory to a slice.  Slices start out as "empty" or `nil`.
+
+```
+	s1 = make ( []int, 5 )
+	s1 = make ( []int, 3, 6 )
+```
+
+Slice of slice:
+
+```
+	s1 = s[1:2]
+```
+
+All of a slice or an array (how to convert an array to a slice)
+
+```
+	s2 := s1[:]
+```
+
+Pitfalls!
+
+
+4. Strings
+
+Strings are immutable!  Hot to denote a string.
+
+
+4. Maps
+
+A map is `var Name map[HashKeyType]ElementType`
+
+Declare:
+
+```
+	var Hw map[string]int
+	func init() {
+		Hw = make( map[string]int )
+	}	
+```
+
+or
+
+```
+	Hw := make( map[string]int )
+```
+
+```
+	Hw["I80"] = 1421
+	Hw["US287"] = 841
+```
+
+Pull out the value and if a value is set.
+
+```
+	vv := Hw["aaa"]
+	ww := Hw["I80"]
+	mm, found := Hw["I80"]
+	_, found2 := Hw["I90"]
+```
 
 4. io & cli
 

@@ -715,11 +715,11 @@ It is the one that is the most adaptable to change.&rdquo;
 <h2>1st. the news</h2>
 
 <ol>
-<li>xyzzy</li>
 <li>AU - Research - linear scaling (similar to blockchain) 8000 tx per sec, don&rsquo;t specify latency.</li>
-<li>Java 4th garbage collector - tried it.  Provision at 20% before, now at 25% ok, at 30% boom.</li>
-<li>Did everybody in the class get a &ldquo;key&rdquo;.</li>
+<li>Binance, the world’s largest cryptocurrency exchange by adjusted trading volume, has just made it easier for users to buy cryptocurrencies.</li>
+<li>ETH will reach 1M Tx per sec.</li>
 <li>California bill passed that defines things like &ldquo;digital signature&rdquo;.</li>
+<li>Land registry in Mexico is moving onto blockchain.</li>
 </ol>
 
 <h2>2nd. Purpose of a business</h2>
@@ -785,6 +785,61 @@ position of legal responsibility for managing somebody else&rsquo;s money.</p>
 </code></pre>
 
 <p>What is a slice?</p>
+
+<p>Allocating memory to a slice.  Slices start out as &ldquo;empty&rdquo; or <code>nil</code>.</p>
+
+<pre><code>	s1 = make ( []int, 5 )
+	s1 = make ( []int, 3, 6 )
+</code></pre>
+
+<p>Slice of slice:</p>
+
+<pre><code>	s1 = s[1:2]
+</code></pre>
+
+<p>All of a slice or an array (how to convert an array to a slice)</p>
+
+<pre><code>	s2 := s1[:]
+</code></pre>
+
+<p>Pitfalls!</p>
+
+<ol>
+<li>Strings</li>
+</ol>
+
+<p>Strings are immutable!  Hot to denote a string.</p>
+
+<ol>
+<li>Maps</li>
+</ol>
+
+<p>A map is <code>var Name map[HashKeyType]ElementType</code></p>
+
+<p>Declare:</p>
+
+<pre><code>	var Hw map[string]int
+	func init() {
+		Hw = make( map[string]int )
+	}	
+</code></pre>
+
+<p>or</p>
+
+<pre><code>	Hw := make( map[string]int )
+</code></pre>
+
+<pre><code>	Hw[&quot;I80&quot;] = 1421
+	Hw[&quot;US287&quot;] = 841
+</code></pre>
+
+<p>Pull out the value and if a value is set.</p>
+
+<pre><code>	vv := Hw[&quot;aaa&quot;]
+	ww := Hw[&quot;I80&quot;]
+	mm, found := Hw[&quot;I80&quot;]
+	_, found2 := Hw[&quot;I90&quot;]
+</code></pre>
 
 <ol>
 <li>io &amp; cli</li>
