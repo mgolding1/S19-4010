@@ -1,0 +1,51 @@
+panic: runtime error: index out of range
+
+goroutine 1 [running]:
+panic(0x10f27c0, 0x11e03e0)
+	/usr/local/go/src/runtime/panic.go:556 +0x2cb fp=0xc0000c9e30 sp=0xc0000c9da0 pc=0x102803b
+runtime.panicindex()
+	/usr/local/go/src/runtime/panic.go:44 +0xfa fp=0xc0000c9e60 sp=0xc0000c9e30 pc=0x1026d6a
+github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/Assignments/A-02/cli.(*CLI).Usage(0xc0000c9f58)
+	/Users/corwin/go/src/github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/Assignments/A-02/cli/usage.go:9 +0xd9 fp=0xc0000c9ec0 sp=0xc0000c9e60 pc=0x10d53c9
+main.main()
+	/Users/corwin/go/src/github.com/Univ-Wyo-Education/S19-4010/a/02/main/main.go:59 +0x30e fp=0xc0000c9f98 sp=0xc0000c9ec0 pc=0x10d577e
+runtime.main()
+	/usr/local/go/src/runtime/proc.go:201 +0x207 fp=0xc0000c9fe0 sp=0xc0000c9f98 pc=0x1029d67
+runtime.goexit()
+	/usr/local/go/src/runtime/asm_amd64.s:1333 +0x1 fp=0xc0000c9fe8 sp=0xc0000c9fe0 pc=0x1052111
+
+goroutine 2 [force gc (idle)]:
+runtime.gopark(0x1119310, 0x11e7090, 0x1410, 0x1)
+	/usr/local/go/src/runtime/proc.go:302 +0xeb fp=0xc000048f80 sp=0xc000048f60 pc=0x102a15b
+runtime.goparkunlock(0x11e7090, 0x1410, 0x1)
+	/usr/local/go/src/runtime/proc.go:308 +0x53 fp=0xc000048fb0 sp=0xc000048f80 pc=0x102a203
+runtime.forcegchelper()
+	/usr/local/go/src/runtime/proc.go:251 +0xb3 fp=0xc000048fe0 sp=0xc000048fb0 pc=0x1029fd3
+runtime.goexit()
+	/usr/local/go/src/runtime/asm_amd64.s:1333 +0x1 fp=0xc000048fe8 sp=0xc000048fe0 pc=0x1052111
+created by runtime.init.4
+	/usr/local/go/src/runtime/proc.go:240 +0x35
+
+goroutine 3 [GC sweep wait]:
+runtime.gopark(0x1119310, 0x11e7180, 0x101140c, 0x1)
+	/usr/local/go/src/runtime/proc.go:302 +0xeb fp=0xc000049780 sp=0xc000049760 pc=0x102a15b
+runtime.goparkunlock(0x11e7180, 0x112140c, 0x1)
+	/usr/local/go/src/runtime/proc.go:308 +0x53 fp=0xc0000497b0 sp=0xc000049780 pc=0x102a203
+runtime.bgsweep(0xc000020070)
+	/usr/local/go/src/runtime/mgcsweep.go:52 +0x8f fp=0xc0000497d8 sp=0xc0000497b0 pc=0x101dd9f
+runtime.goexit()
+	/usr/local/go/src/runtime/asm_amd64.s:1333 +0x1 fp=0xc0000497e0 sp=0xc0000497d8 pc=0x1052111
+created by runtime.gcenable
+	/usr/local/go/src/runtime/mgc.go:216 +0x58
+
+goroutine 17 [finalizer wait]:
+runtime.gopark(0x1119310, 0x1203570, 0xc00002140f, 0x1)
+	/usr/local/go/src/runtime/proc.go:302 +0xeb fp=0xc000048728 sp=0xc000048708 pc=0x102a15b
+runtime.goparkunlock(0x1203570, 0x140f, 0x1)
+	/usr/local/go/src/runtime/proc.go:308 +0x53 fp=0xc000048758 sp=0xc000048728 pc=0x102a203
+runtime.runfinq()
+	/usr/local/go/src/runtime/mfinal.go:175 +0x99 fp=0xc0000487e0 sp=0xc000048758 pc=0x10158a9
+runtime.goexit()
+	/usr/local/go/src/runtime/asm_amd64.s:1333 +0x1 fp=0xc0000487e8 sp=0xc0000487e0 pc=0x1052111
+created by runtime.createfing
+	/usr/local/go/src/runtime/mfinal.go:156 +0x61
