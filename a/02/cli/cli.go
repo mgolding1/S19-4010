@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/Assignments/A-02/block"
-	"github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/Assignments/A-02/config"
-	"github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/Assignments/A-02/index"
-	"github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/Assignments/A-02/lib"
-	"github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/Assignments/A-02/mine"
+	"github.com/Univ-Wyo-Education/S19-4010/a/02/block"
+	"github.com/Univ-Wyo-Education/S19-4010/a/02/config"
+	"github.com/Univ-Wyo-Education/S19-4010/a/02/index"
+	"github.com/Univ-Wyo-Education/S19-4010/a/02/lib"
+	"github.com/Univ-Wyo-Education/S19-4010/a/02/mine"
 )
 
 type CLI struct {
@@ -34,7 +34,7 @@ func (cc *CLI) CreateGenesis(args []string) {
 		fmt.Printf("Error: %s already exists - you will need to remove it if you want to re-create a new chain.\n", fnPath)
 		return
 	}
-	mine.MineBlock(gb)                                          // mine the block
+	mine.MineBlock(gb, cc.GCfg.MiningDifficulty)                // mine the block
 	AllBlocks = append(AllBlocks, gb)                           // put in set of global blocks:
 	fnIndexPath := filepath.Join(cc.GCfg.DataDir, "index.json") //
 	index.WriteIndex(fnIndexPath, AllBlocks)                    // write index
