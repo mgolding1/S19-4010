@@ -1,11 +1,6 @@
 More On Go 
 ====================
 
-1st. the news
------------------
-
-1. 
-
 
 
 Blockchain and Mining
