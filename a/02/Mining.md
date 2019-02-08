@@ -21,7 +21,7 @@ is the block hash.
 To get started, first checkout the code for Assignment 2 - this can be done by: (You can go online to it and cut-paste
 the link - that is what I usually do. In the browser go to
 [https://github.com/Univ-Wyo-Education](https://github.com/Univ-Wyo-Education). Then click on the
-`Blockchain-4010-Fall-2018` repository. When that comes up there is a green button on the left that says `Clone or
+`S19-4010` repository. When that comes up there is a green button on the left that says `Clone or
 download`. Click on that. Cut and paste the URL.)
 
 (You have probably already done this)
@@ -49,7 +49,7 @@ The `checkout -b` will create a new branch for you to work on.
 Having your own branch (you can name it other than hw2) will allow you to 
 switch back and forth between the original code and your modified code.
 
-Then from the `~/go/src/github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018` directory
+Then from the `~/go/src/github.com/Univ-Wyo-Education/S19-4010` directory
 change directory into assignment 2.
 
 ```sh
@@ -59,7 +59,7 @@ change directory into assignment 2.
 Our starting code is in this directory.  Specifically we will want to
 compile the main program.  It is in ./main.  Cd to that directory.
 You shooed end up in:
-`~/go/src/github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/a/02`
+`~/go/src/github.com/Univ-Wyo-Education/S19-4010/a/02`
 
 ```sh
 	cd ./main
