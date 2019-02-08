@@ -1,7 +1,5 @@
 Pt 1: Merkle Trees : Assignment 3
 ==============================
-Pt 2: Basic Client Server
-==============================
 
 One of the major security and validity checks that blockchains
 do is using Merkle trees.
@@ -45,4 +43,43 @@ be working on is in `./merkle`.
 
 1. [Wikipedia has a nice discussion](https://en.wikipedia.org/wiki/Merkle_tree)
 2. [Another explanation of Merkle Trees - with more details](https://brilliant.org/wiki/merkle-tree/)
+
+Pt 2: Basic Client Server
+==============================
+
+This part of the homework is to add a very simple API call to a client server.  The server is in ./simple-server, the sample client is in
+./simple-client.
+
+Modify the sever to have a `/double` that will take a value that it is passed on a `GET` call and double that value.  The return the
+doubled value to the client in a JSON format.
+
+So...
+
+```
+	http://localhost:3000/double?value=12
+```
+
+will return
+
+```
+	{"double":24}
+```
+
+You will need to set the MIME type of the return to JSON with
+
+```
+	xyzzy
+```
+
+Use curl or wget to test this call.
+
+```
+	wget 'http://localhost:3000/double?value=100'
+```
+
+or
+
+```
+	curl 'http://localhost:3000/double?value=100'
+```
 
