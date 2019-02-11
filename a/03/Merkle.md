@@ -1,5 +1,13 @@
+
+Assignment 3
+===
+
+200pts
+
+
 Pt 1: Merkle Trees : Assignment 3
 ==============================
+
 
 One of the major security and validity checks that blockchains
 do is using Merkle trees.
@@ -33,13 +41,13 @@ be working on is in `./merkle`.
 6. Return `hTmp[0]`
 
 
-# Submit
+## Submit
 
 1. Your code, ./merkle/merkle.go.
 2. Any additional test cases that you created.
 3. Your prove that this works.
 
-# References
+## References
 
 1. [Wikipedia has a nice discussion](https://en.wikipedia.org/wiki/Merkle_tree)
 2. [Another explanation of Merkle Trees - with more details](https://brilliant.org/wiki/merkle-tree/)
@@ -68,7 +76,7 @@ will return
 You will need to set the MIME type of the return to JSON with
 
 ```
-	xyzzy
+	www.Header().Set("Content-Type", "application/json; charset=utf-8")
 ```
 
 Use curl or wget to test this call.
@@ -82,4 +90,11 @@ or
 ```
 	curl 'http://localhost:3000/double?value=100'
 ```
+
+Test this with a request from a browser and with the `./simple-client` code.
+
+
+## Submit
+
+1. a copy of the 2 modified .go files in for the client and the server.
 
