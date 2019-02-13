@@ -4,9 +4,8 @@ Last Part on Go
 Answer some questions
 ------------
 
-1. What is an API
-1. Why are web3/dApps important
-1. What is the big picture
+1. NTRU - in 17 stage to for NIST quantum proof encryption.
+2. What is an API?  Why are web3/dApps important?  What is the big picture?
 
 Goroutines
 ------------------------------
