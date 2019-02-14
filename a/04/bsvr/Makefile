@@ -40,5 +40,6 @@ test:
 	( cd lib ; go test )
 	( cd merkle ; go test )
 	( cd mine ; go test )
-	( cd main ; make test )
+	( cd index ; go test )
+	( cd transactions ; go test )
 

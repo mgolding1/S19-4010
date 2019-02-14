@@ -88,20 +88,18 @@ func SerializeForSeal(tx *TransactionType) []byte {
 }
 
 func SerializeTransactionInput(buf *bytes.Buffer, inp *TxInputType) {
-	// binary.Write(buf, binary.BigEndian, inp.BlockNo)
-	// buf.Write([]byte(inp.BlockHash))
-	binary.Write(buf, binary.BigEndian, inp.BlockNo)
-	binary.Write(buf, binary.BigEndian, inp.TxOffset)
-	binary.Write(buf, binary.BigEndian, inp.TxOutputPos)
-	binary.Write(buf, binary.BigEndian, inp.Amount)
+	binary.Write(buf, binary.BigEndian, int64(inp.BlockNo))
+	binary.Write(buf, binary.BigEndian, int64(inp.TxOffset))
+	binary.Write(buf, binary.BigEndian, int64(inp.TxOutputPos))
+	binary.Write(buf, binary.BigEndian, int64(inp.Amount))
 }
 
 func SerializeTransactionOutput(buf *bytes.Buffer, out *TxOutputType) {
-	binary.Write(buf, binary.BigEndian, out.BlockNo)
-	binary.Write(buf, binary.BigEndian, out.TxOffset)
-	binary.Write(buf, binary.BigEndian, out.TxOutputPos)
+	binary.Write(buf, binary.BigEndian, int64(out.BlockNo))
+	binary.Write(buf, binary.BigEndian, int64(out.TxOffset))
+	binary.Write(buf, binary.BigEndian, int64(out.TxOutputPos))
 	buf.Write([]byte(out.Account))
-	binary.Write(buf, binary.BigEndian, out.Amount)
+	binary.Write(buf, binary.BigEndian, int64(out.Amount))
 }
 
 func CreateTxOutputWithFunds(to addr.AddressType, amount int) (txo *TxOutputType, err error) {

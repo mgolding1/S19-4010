@@ -24,8 +24,8 @@ func TestMineBlock(t *testing.T) {
 				Nonce:         0,
 				Seal:          []byte{},
 			},
-			expectedSealHash: "0000ae2cab130b4836988969f731c4f884ac4675790e5575a5161e5b96ab13d7",
-			expectedNonce:    54586,
+			expectedSealHash: "00008ff893670a368c3a3a4b7e1e9b06d2eb71cb9577990a8240edbe2837466b",
+			expectedNonce:    79763,
 		},
 		{
 			bk: block.BlockType{
@@ -36,8 +36,8 @@ func TestMineBlock(t *testing.T) {
 				Nonce:         0,
 				Seal:          []byte{},
 			},
-			expectedSealHash: "0000adc29a80f1f0df08c8687c013d179050f5d1b449599e4d1437e4fad23525",
-			expectedNonce:    46734,
+			expectedSealHash: "0000b3228d0b2a6c862571b0e306e0d4ecadf092ec4b1f3cfd752777cebd09f8",
+			expectedNonce:    169048,
 		},
 		{
 			bk: block.BlockType{
@@ -48,8 +48,8 @@ func TestMineBlock(t *testing.T) {
 				Nonce:         0,
 				Seal:          []byte{},
 			},
-			expectedSealHash: "000013ce557332aaa68abe3b7bf1be856743a03689a802606a732e81713bb78c",
-			expectedNonce:    4527,
+			expectedSealHash: "00003ca4e7e2c4d08d97786f2259a4ffc8b65f099cf6d069105f50f33d6d6443",
+			expectedNonce:    43233,
 		},
 	}
 

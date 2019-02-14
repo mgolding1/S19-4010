@@ -70,7 +70,7 @@ func IsGenesisBlock(bk *BlockType) bool {
 // this block will be saved as.
 func SerializeBlock(bk *BlockType) []byte {
 	var buf bytes.Buffer
-	binary.Write(&buf, binary.BigEndian, bk.Index)
+	binary.Write(&buf, binary.BigEndian, int64(bk.Index))
 	buf.Write([]byte(bk.Desc))
 	buf.Write([]byte(bk.PrevBlockHash))
 	if len(bk.Tx) > 0 {
@@ -89,11 +89,11 @@ func SerializeBlock(bk *BlockType) []byte {
 // SearalizeForSeal searializes into bytes the fields that will be hashed for the mining seal.
 func SerializeForSeal(bk *BlockType) []byte {
 	var buf bytes.Buffer
-	binary.Write(&buf, binary.BigEndian, bk.Index)
+	binary.Write(&buf, binary.BigEndian, int64(bk.Index))
 	buf.Write([]byte(bk.Desc))
 	buf.Write([]byte(bk.ThisBlockHash))
 	buf.Write([]byte(bk.PrevBlockHash))
-	binary.Write(&buf, binary.BigEndian, bk.Nonce)
+	binary.Write(&buf, binary.BigEndian, int64(bk.Nonce))
 	if len(bk.Tx) > 0 {
 		mData := make([][]byte, 0, len(bk.Tx))
 		for _, tx := range bk.Tx {
