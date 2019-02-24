@@ -1,15 +1,16 @@
 Transactions
 -------------------------------
 
-Revised: Sat Sep 22 13:29:27 MDT 2018
+Revised: v1.0 Sat Sep 22 13:29:27 MDT 2018
+Revised: v1.1 Sat Feb 23 18:26:50 MST 2019
 
 In bitcoin and Ethereum you can send funds from one account to another.
 This activity is captured in a transaction.
 
 In this assignment we are going to add transactions to our blockchain.
 
-You will need to implement code in ./cli/cli.go starting at line 183.
-The function is `func (cc *CLI) SendFundsTransaction(`
+You will need to implement code in `../04/bsvr/cli/cli.go` starting at
+line 183.  The function is `func (cc *CLI) SendFundsTransaction(`.
 
 Side Note: notice how line continuation works in go with the
 declaration of the function.
@@ -33,7 +34,7 @@ transferred amount then some "change" is owed back to the "from"
 account.  If "change" is needed then create a transaction output
 with the "change".
 
-The pseudo code is in a comment in the file `./cli/cli.go` and it
+The pseudo code is in a comment in the file `.../cli/cli.go` and it
 is reproduced below.
 
 ```
@@ -53,6 +54,13 @@ is reproduced below.
 	// 4. Find the set of values that are pointed to in the index. 
 	//    These are the values for the 'from' account.  Delete this
 	//    from the index.  These are the values that have been spent.
+	//    ((( To delete from the index use the from value.  Convert it
+	//		to a stirng (the key for the index
+	//		cc.BlockIndex.FindValue.AddrIndex  is a string.
+	//		Then use the builtin "delete" to remove this entire key.
+	//		"delete(cc.BlockIndex.FindValue.AddrIndex, fromConvertedToString)
+	//		You may have to check that the key exists in the "AddrIndex" 
+	//		first ))))
 	// 5. Create a new empty transaction.  Call `transctions.NewEmptyTx`
 	//    to create. Pass in the 'memo' and the 'from' for this
 	//    tranaction.
@@ -73,10 +81,10 @@ is reproduced below.
 
 ## Steps that you will want to use
 
-First you need to get the main program in `.../A-04/main` to compile.  This means having
-the solution to assignment 3 in the `.../A-04/merkle` directory.   Also you will need to
-fix `.../A-04/cli.go` around line 190 to `return` and take out the code that is 
-incomplete.  Go to the `.../A-04/main` directory and:
+First you need to get the main program in `.../04/bsvr/main` to compile.  This means having
+the solution to assignment 3 in the `.../04/bsvr/merkle` directory.   Also you will need to
+fix `.../04/bsvr/cli.go` around line 190 to `return` and take out the code that is 
+incomplete.  Go to the `.../04/bsvr/main` directory and:
 
 ```
 	go build
@@ -91,7 +99,7 @@ to run it.  In the `main` directory run:
 	./main --create-genesis
 ```
 
-This should create a directory `.../A-04/main/data` with 2 files in it.  The file are 
+This should create a directory `.../04/bsvr/main/data` with 2 files in it.  The file are 
 in JSON format.  You should be able to edit the files with a text editor (vi or vim 
 for example) and take a look at them.   The file with the long name (it is the
 hash of the block) is the first block in the chain.  This is the "genesis" block.
@@ -101,7 +109,7 @@ look at both files.
 
 If you need to run `./main --create-genesis` again (so that you are starting over
 with a fresh chain) then you will need to manually delete all the files in the
-`.../A-04/main/data` directory.   I had to do this a bunch of times before I got
+`.../04/bsvr/main/data` directory.   I had to do this a bunch of times before I got
 the transaction code to work.
 
 ### Other commands that are useful.
@@ -127,16 +135,16 @@ the accounts that Sasha emailed out.
 
 Go and find all the stuff that already exists.
 
-1. in `.../A-04/cli/cli.go` look for:
+1. in `.../04/bsvr/cli/cli.go` look for:
 	1. GetTotalValueForAccount(acct)
 	2. GetNonZeroForAccount(acct)
-2. in `.../A-04/transactions/tx.go` look for:
+2. in `.../04/bsvr/transactions/tx.go` look for:
 	1. NewEmptyTx(memo, acct)
 	2. CreateTxInputsFromOldOutputs(oldOutputs)
 	3. CreateTxOutputWithFunds(acct, amount)
 	4. AppendTxOutputToTx(txToAppendTo, newTxOutputs)
-3. Look at how the index is stored in `.../A-04/main/data/index.json` and how this
-is stored in memory.  Look at `.../A-04/index/index.go`.
+3. Look at how the index is stored in `.../04/bsvr/main/data/index.json` and how this
+is stored in memory.  Look at `.../04/bsvr/index/index.go`.
 4. Assume that the author is not so good at writing comments.  Add your own notes.  Look at test cases and
 see how stuff works.   Add your own test cases.  Add print statements to the code to see how things work.
 

@@ -50,17 +50,19 @@ Terms with explanation:
 2. Real Estate - Investing
 2. What is Inflation?
 2. REIT (Real Estate Investment Trust) - legally required to pay out 80% of profits to investors.
-2. Price to Earnings Radio - a P/E ratio is the cost of share of the company divided by Earnings of that particular share of a company.
 2. What is a Derivative
-2. High speed trading
 2. Dividends - Payment of profit to investors as "income" or a reward for owning the stock.
 2. What is the "Yield"
+2. ICOs (Initial Coin Offering)
+2. Cost of "going public"
+
+2. Price to Earnings Radio - a P/E ratio is the cost of share of the company divided by Earnings of that particular share of a company.
+2. High speed trading
 2. What is a basis point (BPS), Example 50 BSP = 0.5%
 2. Stock Buy Back
 2. Index Fund
 2. Insider Trading
 2. Bonds
-2. ICOs (Initial Coin Offering)
 2. "Industrial Staker Sale"
 2. Proof-of-Work, Proof-of-Stake
 2. "Consumer Token Sale"
@@ -74,6 +76,5 @@ Terms with explanation:
 2. Certified Investor
 2. Going public - Make a public offering.  Cost etc.
 2. Money Laundering
-2. Cost of "going public"
 
 

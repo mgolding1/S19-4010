@@ -221,6 +221,13 @@ func (cc *CLI) SendFundsTransaction(
 	// 4. Find the set of values that are pointed to in the index.  These are the
 	//    values for the 'from' account.  Delete this from the index.  These are the
 	// 	  values that have been spent.
+	//    ((( To delete from the index use the from value.  Convert it
+	//		to a stirng (the key for the index
+	//		cc.BlockIndex.FindValue.AddrIndex  is a string.
+	//		Then use the builtin "delete" to remove this entire key.
+	//		"delete(cc.BlockIndex.FindValue.AddrIndex, fromConvertedToString)
+	//		You may have to check that the key exists in the "AddrIndex"
+	//		first ))))
 	// 5. Create a new empty transaction.  Call `transctions.NewEmptyTx` to create.
 	//	  Pass in the 'memo' and the 'from' for this tranaction.
 	// 6. Convert the 'oldOutputs' into a set of new inputs.  The type is

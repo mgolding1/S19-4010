@@ -708,15 +708,16 @@ ol {
 
 <h2>Transactions</h2>
 
-<p>Revised: Sat Sep 22 13:29:27 MDT 2018</p>
+<p>Revised: v1.0 Sat Sep 22 13:29:27 MDT 2018
+Revised: v1.1 Sat Feb 23 18:26:50 MST 2019</p>
 
 <p>In bitcoin and Ethereum you can send funds from one account to another.
 This activity is captured in a transaction.</p>
 
 <p>In this assignment we are going to add transactions to our blockchain.</p>
 
-<p>You will need to implement code in ./cli/cli.go starting at line 183.
-The function is <code>func (cc *CLI) SendFundsTransaction(</code></p>
+<p>You will need to implement code in <code>../04/bsvr/cli/cli.go</code> starting at
+line 183.  The function is <code>func (cc *CLI) SendFundsTransaction(</code>.</p>
 
 <p>Side Note: notice how line continuation works in go with the
 declaration of the function.</p>
@@ -740,7 +741,7 @@ transferred amount then some &ldquo;change&rdquo; is owed back to the &ldquo;fro
 account.  If &ldquo;change&rdquo; is needed then create a transaction output
 with the &ldquo;change&rdquo;.</p>
 
-<p>The pseudo code is in a comment in the file <code>./cli/cli.go</code> and it
+<p>The pseudo code is in a comment in the file <code>.../cli/cli.go</code> and it
 is reproduced below.</p>
 
 <pre><code>	//
@@ -759,6 +760,13 @@ is reproduced below.</p>
 	// 4. Find the set of values that are pointed to in the index. 
 	//    These are the values for the 'from' account.  Delete this
 	//    from the index.  These are the values that have been spent.
+	//    ((( To delete from the index use the from value.  Convert it
+	//		to a stirng (the key for the index
+	//		cc.BlockIndex.FindValue.AddrIndex  is a string.
+	//		Then use the builtin &quot;delete&quot; to remove this entire key.
+	//		&quot;delete(cc.BlockIndex.FindValue.AddrIndex, fromConvertedToString)
+	//		You may have to check that the key exists in the &quot;AddrIndex&quot; 
+	//		first ))))
 	// 5. Create a new empty transaction.  Call `transctions.NewEmptyTx`
 	//    to create. Pass in the 'memo' and the 'from' for this
 	//    tranaction.
@@ -779,10 +787,10 @@ is reproduced below.</p>
 
 <h2>Steps that you will want to use</h2>
 
-<p>First you need to get the main program in <code>.../A-04/main</code> to compile.  This means having
-the solution to assignment 3 in the <code>.../A-04/merkle</code> directory.   Also you will need to
-fix <code>.../A-04/cli.go</code> around line 190 to <code>return</code> and take out the code that is
-incomplete.  Go to the <code>.../A-04/main</code> directory and:</p>
+<p>First you need to get the main program in <code>.../04/bsvr/main</code> to compile.  This means having
+the solution to assignment 3 in the <code>.../04/bsvr/merkle</code> directory.   Also you will need to
+fix <code>.../04/bsvr/cli.go</code> around line 190 to <code>return</code> and take out the code that is
+incomplete.  Go to the <code>.../04/bsvr/main</code> directory and:</p>
 
 <pre><code>	go build
 </code></pre>
@@ -795,7 +803,7 @@ to run it.  In the <code>main</code> directory run:</p>
 <pre><code>	./main --create-genesis
 </code></pre>
 
-<p>This should create a directory <code>.../A-04/main/data</code> with 2 files in it.  The file are
+<p>This should create a directory <code>.../04/bsvr/main/data</code> with 2 files in it.  The file are
 in JSON format.  You should be able to edit the files with a text editor (vi or vim
 for example) and take a look at them.   The file with the long name (it is the
 hash of the block) is the first block in the chain.  This is the &ldquo;genesis&rdquo; block.
@@ -805,7 +813,7 @@ look at both files.</p>
 
 <p>If you need to run <code>./main --create-genesis</code> again (so that you are starting over
 with a fresh chain) then you will need to manually delete all the files in the
-<code>.../A-04/main/data</code> directory.   I had to do this a bunch of times before I got
+<code>.../04/bsvr/main/data</code> directory.   I had to do this a bunch of times before I got
 the transaction code to work.</p>
 
 <h3>Other commands that are useful.</h3>
@@ -830,13 +838,13 @@ the accounts that Sasha emailed out.</p>
 <p>Go and find all the stuff that already exists.</p>
 
 <ol>
-<li>in <code>.../A-04/cli/cli.go</code> look for:
+<li>in <code>.../04/bsvr/cli/cli.go</code> look for:
 
 <ol>
 <li>GetTotalValueForAccount(acct)</li>
 <li>GetNonZeroForAccount(acct)</li>
 </ol></li>
-<li>in <code>.../A-04/transactions/tx.go</code> look for:
+<li>in <code>.../04/bsvr/transactions/tx.go</code> look for:
 
 <ol>
 <li>NewEmptyTx(memo, acct)</li>
@@ -844,8 +852,8 @@ the accounts that Sasha emailed out.</p>
 <li>CreateTxOutputWithFunds(acct, amount)</li>
 <li>AppendTxOutputToTx(txToAppendTo, newTxOutputs)</li>
 </ol></li>
-<li>Look at how the index is stored in <code>.../A-04/main/data/index.json</code> and how this
-is stored in memory.  Look at <code>.../A-04/index/index.go</code>.</li>
+<li>Look at how the index is stored in <code>.../04/bsvr/main/data/index.json</code> and how this
+is stored in memory.  Look at <code>.../04/bsvr/index/index.go</code>.</li>
 <li>Assume that the author is not so good at writing comments.  Add your own notes.  Look at test cases and
 see how stuff works.   Add your own test cases.  Add print statements to the code to see how things work.</li>
 </ol>
