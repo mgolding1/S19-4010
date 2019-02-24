@@ -8,11 +8,11 @@ keep other people from spending their coins.
 
 ## Recent Code Changes
 
-1. All of Assignment 4 code is now under `.../A-05/bsvr`.
+1. All of Assignment 4 code is now under `.../05/bsvr`.
 2. The server is changed to be a HTTP server so that a second process, the wallet, can call it and sign transactions.
-This means large changed to take some extra command line parameters in `.../A-05/bsvr/main/main.go` and to
+This means large changed to take some extra command line parameters in `.../05/bsvr/main/main.go` and to
 have a running HTTP server.
-3. The wallet and it's client code is in `.../A-05/wallet-client`.
+3. The wallet and it's client code is in `.../05/wallet-client`.
 
 ## Overview
 
@@ -44,7 +44,7 @@ block.  After that you can run a server on localhost with a port of 9022
 with:
 
 ```
-	$ cd A-05/bsvr/main
+	$ cd 05/bsvr/main
 	$ go build
 	$ ./main --server 127.0.0.1:9191
 ```
@@ -55,7 +55,7 @@ killed or until you send it a shutdown message.
 ## To call the server from the client.
 
 A client has already been built that has a number of commands in it.
-It is in `.../A-05/wallet-client`.   You can use a browser to enter
+It is in `.../05/wallet-client`.   You can use a browser to enter
 the URLs and call the server.   A browser is a complicated set of
 software that hides lots of details.  Instead we will just use a 
 simple command line client that performs GET requests.
@@ -130,7 +130,7 @@ This is in the client-main.go at line 133.
 
 The server should run and do lots of stuff.  You need to implement the
 section where the signature is actually validated.  This is in
-`../A-05/cli/svr-lib.go` line 115.  If the signature is valid and
+`../05/cli/svr-lib.go` line 115.  If the signature is valid and
 the message is valid then return `isValid` as true.  If an error occurs,
 for example a bad address or some other error during the validation process,
 then return `isValid` as false and the error. Most of the code for this part of the 
@@ -138,13 +138,13 @@ assignment should be adapted from signMessage.go in sig-test.
 
 ## Helpful things
 
-`.../A-05/sig-test` has a full command line tool that implements signing
+`.../05/sig-test` has a full command line tool that implements signing
 and validation of messages.   95% of the code is pulled form go-ethereum.
 
 ## what to submit.
 
-Your code in `.../A-05/bsvr/cli/*.go` and
-`.../A-05/wallet-client/client-main.go`.
+Your code in `.../05/bsvr/cli/*.go` and
+`.../05/wallet-client/client-main.go`.
 If you create more files for the client then submit those also.
 
 
