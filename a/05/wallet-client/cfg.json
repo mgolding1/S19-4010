@@ -1,0 +1,7 @@
+{
+	"Comment": "Config to talk to your server",
+	"Host": "http://127.0.0.1:9000",
+	"WalletPath":"./wallet-data",
+	"LoginAcct": "0x7e3aFEc048bC7be745d0fA0F5af97D3978C40E9A",
+	"LoginPin": "237801"
+}

@@ -32,7 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/console"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/pborman/uuid"
+	pbUUID "github.com/pborman/uuid" // "github.com/pborman/uuid"
 )
 
 // GenerateSignature uses a keyfile and password to sign a message.  If the input message is "" then a random message
@@ -74,7 +74,23 @@ func GenerateNewKeyFile(passphrase string) error {
 	}
 
 	// Create the keyfile object with a random UUID.
-	id := uuid.NewRandom()
+	// id := uuid.NewRandom()
+	xid := pbUUID.NewRandom() // func NewUUID() UUID {
+
+	// Some amazingly weird stuff - to work around the Ethereum folks using
+	// Go Vendoring wrong.
+	buf := fmt.Sprintf(`{
+		"address":"6d5a68a5b8060d52981cb4ca3e6797b3b48dda0d",
+		"privatekey":"ed80bf3d4bf2dbf5f37601541f376607709f76b10ecb69cdd3768250329867d1",
+		"id":%q,
+		"version":3
+	}`, xid)
+	fmt.Printf("buf ->%s<-\n", buf)
+	var k keystore.Key
+	err = k.UnmarshalJSON([]byte(buf))
+	id := k.Id
+	// End Weird Sutff. - have an ID to use.
+
 	key := &keystore.Key{
 		Id:         id,
 		Address:    crypto.PubkeyToAddress(privateKey.PublicKey),
