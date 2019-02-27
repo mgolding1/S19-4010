@@ -3,13 +3,12 @@ package hash
 import (
 	"encoding/hex"
 
-	// "github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/Assignments/A-02/hash"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
+	"golang.org/x/crypto/sha3"
 )
 
 // Keccak256 use the Ethereum Keccak hasing fucntions to return a hash from a list of values.
 func Keccak256(data ...[]byte) []byte {
-	d := sha3.NewKeccak256()
+	d := sha3.NewLegacyKeccak256()
 	for _, b := range data {
 		d.Write(b)
 	}
