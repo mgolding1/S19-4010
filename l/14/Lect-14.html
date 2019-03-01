@@ -715,11 +715,136 @@ ol {
 <h2>News</h2>
 
 <ol>
-<li>Ethereum successful upgrade to Constantinople</li>
-<li>
-3.
-4.</li>
+<li>Ethereum successful upgrade to Constantinople
+<a href="https://decryptmedia.com/5445/ethereum-hard-fork-constantinople-upgrade">https://decryptmedia.com/5445/ethereum-hard-fork-constantinople-upgrade</a></li>
+<li>Banks moving operations out of US due to KYI</li>
 </ol>
+
+<h1>Solidity</h1>
+
+<h2>Version of the compiler</h2>
+
+<pre><code>pragma solidity ^0.4.24;
+</code></pre>
+
+<h2>Library we will be using</h2>
+
+<pre><code>import &quot;openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol&quot;;
+</code></pre>
+
+<h2>Comments</h2>
+
+<pre><code>/* Some Comment */ // Single line comment
+</code></pre>
+
+<h2>Classes and Inheritance</h2>
+
+<pre><code>contract StandardToken is ERC20, BasicToken {
+</code></pre>
+
+<h2>Constructor</h2>
+
+<pre><code>	constructor() public {
+</code></pre>
+
+<h2>Declare a string</h2>
+
+<pre><code>	string public constant name = &quot;SimpleToken&quot;; // solium-disable-line uppercase
+</code></pre>
+
+<h2>Test for true statments</h2>
+
+<pre><code>    require(_to != address(0));
+</code></pre>
+
+<h2>if</h2>
+
+<pre><code>    if (_subtractedValue &gt; oldValue) {
+      allowed[msg.sender][_spender] = 0;
+    } else {
+      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+    }
+</code></pre>
+
+<h2>Function</h2>
+
+<pre><code>  function transferFrom( address _from, address _to, uint256 _value
+  ) public returns (bool)
+  {
+</code></pre>
+
+<h2>Events</h2>
+
+<pre><code>  event Approval( address indexed owner, address indexed spender,
+    uint256 value );
+</code></pre>
+
+<pre><code>    emit Approval(msg.sender, _spender, _value);
+</code></pre>
+
+<p><div class="pagebreak"></div></p>
+
+<h2>Example with a Loop</h2>
+
+<pre><code>  1  pragma solidity ^0.4.24;
+  2  
+  3  import &quot;openzeppelin-solidity/contracts/ownership/Ownable.sol&quot;;
+  4  
+  5  contract Loop is Ownable {
+  6    struct StudentStruct {
+  7      uint256 grade;        // grade is a percentage * 1000
+  8      uint256 pin;        // Unique PIN code for student to get grade
+  9    }
+ 10  
+ 11    mapping(address =&gt; StudentStruct) addressToStudent;
+ 12    address [] studentList;
+ 13  
+ 14    event LogStudentGrade(address student, uint256 studentGrade);
+ 15  
+ 16    function appendStudentGrade(address student, uint256 studentGrade,
+       uint256 pin) public onlyOwner {
+ 17      studentList.push(student);
+ 18      addressToStudent[student].grade = studentGrade;
+ 19      addressToStudent[student].pin = pin;
+ 20    }
+ 21  
+ 22    function getStudentCount() public view returns(uint) {
+ 23      return studentList.length;
+ 24    }
+ 25  
+ 26    function getNthStudentGrade(uint i)
+       public view onlyOwner returns(uint256) {
+ 27      require(i &gt;= 0);
+ 28      require(i &lt; studentList.length);
+ 29      return(addressToStudent[studentList[i]].grade);
+ 30    }
+ 31  
+ 32    function getNthStudentAddress(uint i)
+       public view onlyOwner returns(address) {
+ 33      require(i &gt;= 0);
+ 34      require(i &lt; studentList.length);
+ 35      return(studentList[i]);
+ 36    }
+</code></pre>
+
+<p><div class="pagebreak"></div></p>
+
+<pre><code> 37  
+ 38    function getAGrade(address student, uint256 pin)
+       public view returns(uint256) {
+ 39      require(msg.sender == address);
+ 40      require(pin == addressToStudent[student].pin);
+ 41      return(addressToStudent[student].grade);
+ 42    }
+ 43  
+ 44    function emitGrades () public onlyOwner {
+ 45      for (uint i=0; i&lt;studentList.length; i++) {
+ 46        emit LogStudentGrade(studentList[i],
+           addressToStudent[studentList[i]].grade);
+ 47      }
+ 48    }
+ 49  }
+</code></pre>
 
 </div>
 
