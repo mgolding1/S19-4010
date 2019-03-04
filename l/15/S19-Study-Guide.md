@@ -1,5 +1,4 @@
-# Fall 2018              
-# COSCI Study Guide Exam 1					
+# Sprint 2019  Study Guide For Midterm
 
 Terms with explanation
 -----------------------------------------------------------------------
@@ -395,10 +394,5 @@ See: [https://gobyexample.com/closures](https://gobyexample.com/closures)
 
 Be able to write a simple closure.
 
-
-Functions
---
-
-Be able to write a function that returns more than one value.
 
 
