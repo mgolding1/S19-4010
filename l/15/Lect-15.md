@@ -192,3 +192,9 @@ Compiling truffle/DeployedAddresses.sol...
 
 ```
 
+
+Now install Open Zeppelin 
+
+```sh
+	$ npm install openzeppelin-solidity
+```
