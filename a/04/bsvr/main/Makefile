@@ -6,7 +6,8 @@ all:
 
 test: test001 test_sf0 test_sf1
 
-T1=29e68e530d0718dd01759e8c9a5276d20687bc5ec23e60dce063c2b97ba6b04f.json
+# T1=29e68e530d0718dd01759e8c9a5276d20687bc5ec23e60dce063c2b97ba6b04f.json
+T1=6b09dc0d997f213a24a9aa2357134ef10d93d1141523e19a5c453923cf8f7b67.json
 
 test001:
 	go build
@@ -24,6 +25,7 @@ test001:
 	@echo 
 	@echo PASS
 
+# Setup for 2nd test - transfer between accounts
 test_sf0:
 	go build
 	mkdir -p data
@@ -31,6 +33,7 @@ test_sf0:
 	mkdir -p ./out
 	./main --create-genesis
 
+# 2nd Test
 # You can run this test multiple times after 'test_sf0' has setup the ./data directory.
 test_sf1:
 	go build
