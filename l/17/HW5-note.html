@@ -717,26 +717,5 @@ ol {
 <pre><code>	brew install gmp openssl llvm
 </code></pre>
 
-<h1>Other notes</h1>
-
-<p>Also it appears that my original instructions for hw-5 are missing the &ndash;addr parameter that you have to use when
-validating a signature.</p>
-
-<h1>Linking probblem</h1>
-
-<p>You have to delete a package from go-ethereum</p>
-
-<p>In /Users/<code>Your User Name</code>/go/src/github.com/ethereum/go-ethereum/vendor/github.com and in
-/Users/<code>Your User Name</code>/go/src/github.com/Univ-Wyo-Education/Blockchain-4010-Fall-2018/vendor/github.com</p>
-
-<p>find the directory <code>pborman</code> and remove the <code>uuid</code> package.  That is the directory under <code>pborman</code>.</p>
-
-<p>Then verify that you have this package in <code>~/go/src/github.com/pborman/uuid</code> &ndash; to do that
-create the directory <code>~/go/src/github.com/pborman</code>
-cd to it, then</p>
-
-<pre><code>go get https://github.com/pborman/uuid.git
-</code></pre>
-
 </div>
 
