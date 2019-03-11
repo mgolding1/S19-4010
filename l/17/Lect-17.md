@@ -8,6 +8,29 @@ Insurance Companies
 2. Apr 10, 11th - I will be traveling for business. Hemp Oil.
 3. GM Prevention of Synthetic Identity Fraud (GM Financial to track Real people with blockchain). 
 4. Abu Dhabi, Belgim and Netherlands - common link for shipping tracking containers with blockchain.
+5. The Prime Minister of Malta, Joseph Muscat, has said that cryptocurrencies are the “inevitable future of money,”
+the Washington Post has an article:
+[https://www.washingtonpost.com/opinions/global-opinions/china-is-racing-ahead-of-the-united-states-on-blockchain/2019/03/07/c1e7776a-4116-11e9-9361-301ffb5bd5e6_story.html](https://www.washingtonpost.com/opinions/global-opinions/china-is-racing-ahead-of-the-united-states-on-blockchain/2019/03/07/c1e7776a-4116-11e9-9361-301ffb5bd5e6_story.html)
+
+"The grand strategic competition between the United States and China will be won
+or lost based on who controls the rules and systems that govern 21st-century
+commerce, communications and security. Washington can no longer ignore that
+China is way ahead on the core technology that will underpin those systems:
+blockchain."
+
+
+# HW 5 -  If you are working on Windows
+
+You will need gcc.  I instaled from: http://tdm-gcc.tdragon.net/
+
+# HW 5 - if you are working on Mac
+
+You will need to have 'brew' installed - google 'install brew' and then install:
+
+```
+	brew install gmp openssl llvm
+```
+
 
 
 
