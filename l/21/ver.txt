@@ -1,0 +1,11 @@
+$ truffle --version
+Truffle v5.0.9 - a development framework for Ethereum
+	...
+$ node --version
+v10.15.3
+$ npm --version
+6.4.1
+$ solc --version
+solc, the solidity compiler commandline interface
+Version: 0.5.7+commit.6da8b019.Darwin.appleclang
+

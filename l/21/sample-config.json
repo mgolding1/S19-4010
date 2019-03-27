@@ -1,0 +1,7 @@
+{
+	"Eth_URL_ws"                : "ws://192.168.0.199:8546",
+	"Eth_URL_rpc"             	: "http://192.168.0.199:8545",
+	"Eth_Account_Address"		: "0x023e291a99d21c944a871adcc44561a58f99bdbc",
+	"Eth_Account_KeyFile"		: "./keystore/UTC--2018-07-17T00-00-00.000000000Z--023e291a99d21c944a871adcc44561a58f99bdbc",
+	"Eth_Contract_SignedData"	: "0x0134291399821c944a871adcc44561a58f99bdbc"
+}
