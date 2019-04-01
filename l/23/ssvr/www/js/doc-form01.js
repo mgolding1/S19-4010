@@ -2,7 +2,9 @@
 var search_data = [];
 
 function submitForm01 ( event ) {
-    event.preventDefault(); // Totally stop stuff happening
+	if ( event ) {
+		event.preventDefault(); // Totally stop stuff happening
+	}
 
 	$("#msg").html("");
 
@@ -10,13 +12,13 @@ function submitForm01 ( event ) {
 		  "auth_key"		: g_auth_key
 		, "_ran_" 			: ( Math.random() * 10000000 ) % 10000000
 	};
-	submitItData ( event, data, "/api/v1/documetns", function(data){
+	submitItData ( event, data, "/api/v1/documents", function(data){
 			if ( data && data.status && data.status == "success" && data.data && data.data.length > 0 ) {
 				search_data = data.data;
 				renderForm01 ( event ); // next !!!!
 			} else {
 				console.log ( "ERROR: ", data );
-				renderError ( "Data Error", "Check that you have create at least 1 document.");
+				// renderError ( "Data Error", "Check that you have create at least 1 document.");
 			}
 		}, function(data) {
 				console.log ( "ERROR: ", data );

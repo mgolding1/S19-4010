@@ -63,10 +63,6 @@ func HandleStoredProcedureConfig(www http.ResponseWriter, req *http.Request, SPD
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// xyzzy - check JWTKey at this point.
-	// -----------------------------------------------------------------------
-
 	method := MethodReplace(www, req)
 
 	switch method {
@@ -86,7 +82,7 @@ func HandleStoredProcedureConfig(www http.ResponseWriter, req *http.Request, SPD
 			fmt.Printf("AT: %s stmt [%s]\n", godebug.LF(), stmt)
 		}
 		var rawData string
-		err = SqliteQueryRow(stmt, inputData...).Scan(&rawData) // xyzzy -- need to get back JSON data
+		err = SqliteQueryRow(stmt, inputData...).Scan(&rawData)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error fetching return data form %s ->%s<- error %s at %s\n", SPData.StoredProcedureName, stmt, err, godebug.LF())
 			www.WriteHeader(http.StatusInternalServerError) // 500
@@ -131,6 +127,10 @@ type MultiRv struct {
 // HandleCRUDConfig uses a CrudConfig to setup a table handler for requests.
 func HandleCRUDConfig(www http.ResponseWriter, req *http.Request, CrudData CrudConfig, posInTable int) {
 
+	if db_flag["HandleCRUD"] {
+		fmt.Printf("Top of HandleCrudConfig: AT: %s\n", godebug.LF())
+	}
+
 	if CrudData.AuthKey {
 		if !IsAuthKeyValid(www, req) {
 			fmt.Printf("%sAT: %s api_key wrong\n%s", MiscLib.ColorRed, godebug.LF(), MiscLib.ColorReset)
@@ -153,7 +153,7 @@ func HandleCRUDConfig(www http.ResponseWriter, req *http.Request, CrudData CrudC
 			// concatenated set of "selects" from where clauses, could be a requst with just a bunch of "id" and pull those rows.
 			// For example: { [ { "id": "123" }, { "id": "444" } ] }
 			// Returns 2 rows of data.
-			// xyzzy4000 -mutli- delete
+			// xyzzy4000 -mutli- delete -- not implemented yet.
 		} else {
 			// if "id" - then pull just id, else select all from...
 			found_id, id := GetVar("id", www, req)
@@ -187,7 +187,7 @@ func HandleCRUDConfig(www http.ResponseWriter, req *http.Request, CrudData CrudC
 					www.WriteHeader(http.StatusInternalServerError) // 500
 					return
 				}
-				fmt.Printf("%sAT: %s%s\n", MiscLib.ColorYellow, godebug.LF(), MiscLib.ColorReset) // xyzzy
+				fmt.Printf("%sAT: %s%s\n", MiscLib.ColorYellow, godebug.LF(), MiscLib.ColorReset)
 
 			} else if CrudData.SelectRequiresWhere { // If true, then were must be specified - can not do a full-table below.
 				if db_flag["HandleCRUD"] {
@@ -213,7 +213,7 @@ func HandleCRUDConfig(www http.ResponseWriter, req *http.Request, CrudData CrudC
 			}
 		}
 		if db_flag["HandleCRUD"] {
-			fmt.Printf("%sAT: %s data ->%s<-%s\n", MiscLib.ColorYellow, godebug.LF(), godebug.SVarI(data), MiscLib.ColorReset) // xyzzy
+			fmt.Printf("%sAT: %s data ->%s<-%s\n", MiscLib.ColorYellow, godebug.LF(), godebug.SVarI(data), MiscLib.ColorReset)
 		}
 		if isTLS {
 			www.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
@@ -290,7 +290,7 @@ func HandleCRUDConfig(www http.ResponseWriter, req *http.Request, CrudData CrudC
 	case "DELETE": // delete
 		// check for __data__ - if so then do a multi-insert/update??
 		if _, found := MultiData(www, req); found {
-			// xyzzy4000 -mutli- delete
+			// xyzzy4000 -mutli- delete -- not implemented yet.
 		} else {
 			// Delete based on id=pk
 			found_id, id := GetVar("id", www, req)
@@ -340,7 +340,6 @@ func MultiInsertUpdate(www http.ResponseWriter, req *http.Request, CrudData Crud
 	status := "success" // success, partial, error
 	nErr := 0
 	for ii, aMd := range md {
-		// xyzzy if __method__ == "POST" then insert, else "PUT" => Update
 		if method, ok := aMd["__method__"]; (ok && method == "POST") || !ok {
 
 			cols, vals, inputData, id, err := GetInsertNamesMulti(www, req, ii, aMd, CrudData.InsertCols, CrudData.InsertPkCol)
@@ -416,9 +415,9 @@ func FoundCol(www http.ResponseWriter, req *http.Request, WhereCols []string) (c
 	}
 	for _, col := range WhereCols {
 		ok, val := GetVar(col, www, req)
-		fmt.Printf("FoundCol: col [%s] ok=%v val= ->%s<- AT: %s\n", col, ok, val, godebug.LF())
+		// fmt.Printf("FoundCol: col [%s] ok=%v val= ->%s<- AT: %s\n", col, ok, val, godebug.LF())
 		if ok {
-			fmt.Printf("FoundCol: col [%s] AT: %s\n", col, godebug.LF())
+			// fmt.Printf("FoundCol: col [%s] AT: %s\n", col, godebug.LF())
 			found = true
 			cols = append(cols, col)
 			colsData = append(colsData, val)
@@ -667,7 +666,7 @@ func GetUpdateNamesMulti(www http.ResponseWriter, req *http.Request, pos int, aM
 	return
 }
 
-// xyzzy
+// GetUpdateNmaes returns the set of update columns and the data values for running an udpate.
 func GetUpdateNames(www http.ResponseWriter, req *http.Request, potentialCols []string, pkCol string) (updCols string, inputData []interface{}, id string, err error) {
 	inputData = make([]interface{}, 0, len(potentialCols))
 	colsSlice := make([]string, 0, len(potentialCols))
@@ -718,18 +717,6 @@ func GetUpdateNames(www http.ResponseWriter, req *http.Request, potentialCols []
 	return
 }
 
-// not used any more
-// func SelectXFound(stmt, expect, id string) (data string, succ bool) {
-// 	err := SqliteQueryRow(stmt, id).Scan(&data)
-// 	// fmt.Fprintf(os.Stderr, "AT: %s - data [%s] err [%s]\n", godebug.LF(), data, err)
-// 	if err != nil {
-// 		succ = false
-// 	} else {
-// 		return data, data == expect
-// 	}
-// 	return
-// }
-
 // HandleTables creates a set of closure based functions for each of thie items in TableConfig.
 // Each handler is for a single end point.  Look at the comments for TableConfig for how to use
 // this.
@@ -740,11 +727,12 @@ func HandleTables(mux *http.ServeMux) {
 		}
 	}
 	for ii, cc := range TableConfig {
+		fmt.Printf("End Point: %s\n", cc.URIPath)
 		mux.Handle(cc.URIPath, http.HandlerFunc(handleTableClosure(cc, ii)))
 	}
 
-	// xyzzy - Store Proceure
-	// select {{.StoredProcedureName}} ( $1, ... $9 ) as "x"
+	// Store Procedures - for d.b.'s that have them. (Postgres, Oracle etc)
+	// 	PG: select {{.StoredProcedureName}} ( $1, ... $9 ) as "x"
 	handleSPClosure := func(cc CrudStoredProcConfig, ii int) func(www http.ResponseWriter, req *http.Request) {
 		return func(www http.ResponseWriter, req *http.Request) {
 			HandleStoredProcedureConfig(www, req, cc, ii)

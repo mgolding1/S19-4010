@@ -99,6 +99,40 @@ func HandleStatus(www http.ResponseWriter, req *http.Request) {
 	return
 }
 
+/*
+	stmt = `CREATE TABLE IF NOT EXISTS users (
+		id 					INTEGER PRIMARY KEY,
+		username 			TEXT,
+		password 			TEXT
+	)`
+*/
+func ValidUser(un, pw string) bool {
+	// xyzzy - TODO At this point you really shoudl check v.s. the d.b.
+	return true
+}
+
+func HandleLogin(www http.ResponseWriter, req *http.Request) {
+
+	un_found, un := GetVar("username", www, req)
+	pw_found, pw := GetVar("password", www, req)
+
+	if !un_found || !pw_found {
+		www.WriteHeader(406) // Invalid Request
+	}
+
+	if !ValidUser(un, pw) {
+		www.WriteHeader(401) // Not Authorized
+	}
+
+	if isTLS {
+		www.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	}
+	www.Header().Set("Content-Type", "application/json; charset=utf-8")
+	www.WriteHeader(http.StatusOK) // 200
+	fmt.Fprintf(www, `{"status":"success","user_id":"1","auth_token":"1234"}`)
+	return
+}
+
 // HandleExitServer - graceful server shutdown.
 func HandleExitServer(www http.ResponseWriter, req *http.Request) {
 

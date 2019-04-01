@@ -181,13 +181,18 @@ func main() {
 	mux.Handle("/api/v1/status", http.HandlerFunc(HandleStatus))          //
 	mux.Handle("/status", http.HandlerFunc(HandleStatus))                 //
 	mux.Handle("/api/v1/exit-server", http.HandlerFunc(HandleExitServer)) //
-	mux.Handle("/login", http.HandlerFunc(HandleStatus))                  //	// // not a real login - just retruns success -
+	mux.Handle("/login", http.HandlerFunc(HandleLogin))                   //	// // not a real login - just retruns success -
 	mux.HandleFunc("/upload", UploadFileClosure(gCfg.UploadPath))         // URL to upload files with multi-part mime
+
+	// temp test
+	// mux.Handle("/api/v1/t_documents", http.HandlerFunc(HandleStatus)) //
 
 	// For the list of end-points (URI Paths) see ./handle.go
 	HandleTables(mux)
 
 	mux.Handle("/", http.FileServer(http.Dir(gCfg.StaticPath)))
+
+	//	mux.DumpPath()
 
 	// ------------------------------------------------------------------------------
 	// Setup signal capture

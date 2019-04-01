@@ -86,11 +86,41 @@ func ConnectToSqlite() {
 
 func CreateTables() {
 	var err error
-	stmt := "CREATE TABLE IF NOT EXISTS documents (id INTEGER PRIMARY KEY, name TEXT, hash TEXT)"
+
+	stmt := `CREATE TABLE IF NOT EXISTS documents (
+		id 					INTEGER PRIMARY KEY,
+		document_hash 		TEXT,
+		email 				TEXT,
+		real_name 			TEXT,
+		phone_number 		TEXT,
+		address_usps 		TEXT,
+		document_file_name	TEXT,
+		file_name			TEXT,
+		orig_file_name		TEXT,
+		txid				TEXT,
+		note 				TEXT,
+ 		updated 			DATETIME,
+ 		created 			DATETIME DEFAULT CURRENT_TIMESTAMP
+	)`
 	prep, err := DB.Prepare(stmt)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sStatment incorrect [%s] : %s%s\n", MiscLib.ColorRed, stmt, err, MiscLib.ColorReset)
 		os.Exit(1)
 	}
 	prep.Exec()
+
+	stmt = `CREATE TABLE IF NOT EXISTS users (
+		id 					INTEGER PRIMARY KEY,
+		username 			TEXT,
+		password 			TEXT,
+ 		updated 			DATETIME,
+ 		created 			DATETIME DEFAULT CURRENT_TIMESTAMP
+	)`
+	prep, err = DB.Prepare(stmt)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%sStatment incorrect [%s] : %s%s\n", MiscLib.ColorRed, stmt, err, MiscLib.ColorReset)
+		os.Exit(1)
+	}
+	prep.Exec()
+
 }
