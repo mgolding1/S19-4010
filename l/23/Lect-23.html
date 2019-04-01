@@ -710,12 +710,472 @@ ol {
 
 <h2>News</h2>
 
-<p>1.
-2.</p>
+<ol>
+<li><p>Economists such as Dale Jorgenson of Harvard University, who specialise in measuring economic productivity, report that
+in recent years the only increase in total-factor productivity in the US economy has been in the information
+technology-producing industries.</p></li>
 
-<h2>Imposter Syndrom</h2>
+<li><p>Recruiting: Big four auditing firm PricewaterhouseCoopers (PwC) is the top recruiter for blockchain-related jobs on
+recruitment platform Indeed, search results showed at press time on March 30. PwC is responsible for 40
+blockchain-related job offers on the platform. Other big four auditing firms are apparently recruiting professionals in
+this niche on the platform: more precisely, Ernst &amp; Young posted 17 such announcements, while Deloitte posted 10.</p></li>
 
-<h2>Lecture Notes</h2>
+<li><p>Argentena&rsquo;s Central Bank states &ldquo;as blockchain based technology develops the need for USD as a central currency will
+deminish.&rdquo;</p></li>
+</ol>
+
+<h2>Imposter Syndrome</h2>
+
+<p>The syndrome.</p>
+
+<h2>How to Launder Money.</h2>
+
+<p>From: <a href="https://www.washingtonpost.com/outlook/trumps-businesses-are-full-of-dirty-russian-money-the-scandal-is-thats-legal/2019/03/29/11b812da-5171-11e9-88a1-ed346f0ec94f_story.html">https://www.washingtonpost.com/outlook/trumps-businesses-are-full-of-dirty-russian-money-the-scandal-is-thats-legal/2019/03/29/11b812da-5171-11e9-88a1-ed346f0ec94f_story.html</a></p>
+
+<p>&ldquo;According to Jonathan Winer, who served as deputy assistant secretary of state for international law enforcement in the
+Clinton administration, &hellip; “If you are doing a transaction with no mortgage, there is
+no financial institution that needs to know where the money came from, particularly if it’s a wire transfer from
+overseas,” &hellip; “The customer obligations that are imposed on all kinds of
+financial institutions are not imposed on people selling real estate. &hellip;&rdquo;</p>
+
+<p>&ldquo;And without such regulations, prosecutors’ hands are tied.</p>
+
+<p>&ldquo;All of which made it easier for the Russian Mafia to expand throughout the United States.&rdquo;</p>
+
+<h2>Server</h2>
+
+<pre><code>  1 package main
+  2 
+  3 import (
+  4     &quot;context&quot;
+  5     &quot;crypto/tls&quot;
+  6     &quot;database/sql&quot;
+  7     &quot;flag&quot;
+  8     &quot;fmt&quot;
+  9     &quot;log&quot;
+ 10     &quot;net/http&quot;
+ 11     &quot;os&quot;
+ 12     &quot;os/signal&quot;
+ 13     &quot;strings&quot;
+ 14     &quot;sync&quot;
+ 15     &quot;time&quot;
+ 16 
+ 17     &quot;github.com/Univ-Wyo-Education/S19-4010/l/23/ssvr/ReadConfig&quot;
+ 18     &quot;github.com/pschlump/MiscLib&quot;
+ 19     &quot;github.com/pschlump/filelib&quot;
+ 20     &quot;github.com/pschlump/godebug&quot;
+ 21 )
+ 22 
+ 23 // ----------------------------------------------------------------------------------
+ 24 // Notes:
+ 25 //   Graceful Shutdown: https://stackoverflow.com/questions/39320025/how-to-stop-http-listenandserve
+ 26 // ----------------------------------------------------------------------------------
+ 27 
+ 28 var Cfg = flag.String(&quot;cfg&quot;, &quot;cfg.json&quot;, &quot;config file for this call&quot;)
+ 29 var HostPort = flag.String(&quot;hostport&quot;, &quot;:9004&quot;, &quot;Host/Port to listen on&quot;)
+ 30 var DbFlag = flag.String(&quot;db_flag&quot;, &quot;&quot;, &quot;Additional Debug Flags&quot;)
+ 31 var TLS_crt = flag.String(&quot;tls_crt&quot;, &quot;&quot;, &quot;TLS Signed Publick Key&quot;)
+ 32 var TLS_key = flag.String(&quot;tls_key&quot;, &quot;&quot;, &quot;TLS Signed Private Key&quot;)
+ 33 
+ 34 type GlobalConfigData struct {
+ 35     TickerSeconds int `json:&quot;ticker_seconds&quot; default:&quot;30&quot;` // Time Ticker Seconds
+ 36 
+ 37     DBSqlite    string `json:&quot;sqlite_name&quot; default:&quot;mydb.db&quot;`
+ 38     LogFileName string `json:&quot;log_file_name&quot;`
+ 39 
+ 40     // debug flags:
+ 41     //        GetVal                        Show fetching of values from GET/POST/...
+ 42     //        HandleCRUD                    General CRUD
+ 43     //        HandleCRUD.GenWhere            CRUD generating &quot;where&quot; clause
+ 44     //        HandleCRUDSP                CRUD calling stored procedures
+ 45     //        IsAuthKeyValid                Check of 'auth_key'
+ 46     //        dump-db-flag                Dump flags turned on.
+ 47     DebugFlag string `json:&quot;db_flag&quot;`
+ 48 
+ 49     AuthKey string `json:&quot;auth_key&quot; default:&quot;&quot;` // Auth key by default is turned off.
+ 50 
+ 51     // Defauilt file for TLS setup (Shoud include path), both must be specified.
+ 52     // These can be over ridden on the command line.
+ 53     TLS_crt string `json:&quot;tls_crt&quot; default:&quot;&quot;`
+ 54     TLS_key string `json:&quot;tls_key&quot; default:&quot;&quot;`
+ 55 
+ 56     // Path where files are temporary uploaded to
+ 57     UploadPath string `json:&quot;upload_path&quot; default:&quot;./files&quot;`
+ 58 
+ 59     TemplateDir string `default:&quot;./tmpl&quot;`
+ 60 
+ 61     StaticPath string `json:&quot;static_path&quot; default:&quot;www&quot;`
+ 62 }
+ 63 
+ 64 var gCfg GlobalConfigData
+ 65 var logFilePtr *os.File
+ 66 var logFileName = &quot;&quot;
+ 67 var DB *sql.DB
+ 68 var db_flag map[string]bool
+ 69 var wg sync.WaitGroup
+ 70 var httpServer *http.Server
+ 71 var logger *log.Logger
+ 72 var shutdownWaitTime = time.Duration(1)
+ 73 var isTLS bool
+ 74 
+ 75 func init() {
+ 76     isTLS = false
+ 77     db_flag = make(map[string]bool)
+ 78     logger = log.New(os.Stdout, &quot;&quot;, 0)
+ 79 }
+ 80 
+ 81 func main() {
+ 82 
+ 83     flag.Parse() // Parse CLI arguments to this, --cfg &lt;name&gt;.json
+ 84 
+ 85     fns := flag.Args()
+ 86     if len(fns) != 0 {
+ 87         fmt.Printf(&quot;Extra arguments are not supported [%s]\n&quot;, fns)
+ 88         os.Exit(1)
+ 89     }
+ 90 
+ 91     if Cfg == nil {
+ 92         fmt.Printf(&quot;--cfg is a required parameter\n&quot;)
+ 93         os.Exit(1)
+ 94     }
+ 95 
+ 96     // ------------------------------------------------------------------------------
+ 97     // Read in Configuraiton
+ 98     // ------------------------------------------------------------------------------
+ 99     err := ReadConfig.ReadFile(*Cfg, &amp;gCfg)
+100     if err != nil {
+101         fmt.Fprintf(os.Stderr, &quot;Unable to read confguration: %s error %s\n&quot;, *Cfg, err)
+102         os.Exit(1)
+103     }
+104 
+105     // ------------------------------------------------------------------------------
+106     // Logging File
+107     // ------------------------------------------------------------------------------
+108     if gCfg.LogFileName != &quot;&quot; {
+109         LogFile(gCfg.LogFileName)
+110     }
+111 
+112     // ------------------------------------------------------------------------------
+113     // TLS parameter check / setup
+114     // ------------------------------------------------------------------------------
+115     if *TLS_crt == &quot;&quot; &amp;&amp; gCfg.TLS_crt != &quot;&quot; {
+116         TLS_crt = &amp;gCfg.TLS_crt
+117     }
+118     if *TLS_key == &quot;&quot; &amp;&amp; gCfg.TLS_key != &quot;&quot; {
+119         TLS_key = &amp;gCfg.TLS_key
+120     }
+121 
+122     if *TLS_crt != &quot;&quot; &amp;&amp; *TLS_key == &quot;&quot; {
+123         log.Fatalf(&quot;Must supply both .crt and .key for TLS to be turned on - fatal error.&quot;)
+124     } else if *TLS_crt == &quot;&quot; &amp;&amp; *TLS_key != &quot;&quot; {
+125         log.Fatalf(&quot;Must supply both .crt and .key for TLS to be turned on - fatal error.&quot;)
+126     } else if *TLS_crt != &quot;&quot; &amp;&amp; *TLS_key != &quot;&quot; {
+127         if !filelib.Exists(*TLS_crt) {
+128             log.Fatalf(&quot;Missing file -&gt;%s&lt;-\n&quot;, *TLS_crt)
+129         }
+130         if !filelib.Exists(*TLS_key) {
+131             log.Fatalf(&quot;Missing file -&gt;%s&lt;-\n&quot;, *TLS_key)
+132         }
+133         isTLS = true
+134     }
+135 
+136     // ------------------------------------------------------------------------------
+137     // Debug Flag Processing
+138     // ------------------------------------------------------------------------------
+139     if gCfg.DebugFlag != &quot;&quot; {
+140         ss := strings.Split(gCfg.DebugFlag, &quot;,&quot;)
+141         // fmt.Printf(&quot;gCfg.DebugFlag -&gt;%s&lt;-\n&quot;, gCfg.DebugFlag)
+142         for _, sx := range ss {
+143             // fmt.Printf(&quot;Setting -&gt;%s&lt;-\n&quot;, sx)
+144             db_flag[sx] = true
+145         }
+146     }
+147     if *DbFlag != &quot;&quot; {
+148         ss := strings.Split(*DbFlag, &quot;,&quot;)
+149         // fmt.Printf(&quot;gCfg.DebugFlag -&gt;%s&lt;-\n&quot;, gCfg.DebugFlag)
+150         for _, sx := range ss {
+151             // fmt.Printf(&quot;Setting -&gt;%s&lt;-\n&quot;, sx)
+152             db_flag[sx] = true
+153         }
+154     }
+155     if db_flag[&quot;dump-db-flag&quot;] {
+156         fmt.Fprintf(os.Stderr, &quot;%sDB Flags Enabled Are:%s\n&quot;, MiscLib.ColorGreen, MiscLib.ColorReset)
+157         for x := range db_flag {
+158             fmt.Fprintf(os.Stderr, &quot;%s\t%s%s\n&quot;, MiscLib.ColorGreen, x, MiscLib.ColorReset)
+159         }
+160     }
+161 
+162     fmt.Fprintf(os.Stderr, &quot;%sAT %s, %s\n&quot;, MiscLib.ColorGreen, godebug.LF(), MiscLib.ColorReset)
+163 
+164     // ------------------------------------------------------------------------------
+165     // Connect to Database
+166     // ------------------------------------------------------------------------------
+167     ConnectToSqlite()
+168     CreateTables()
+169 
+170     fmt.Fprintf(os.Stderr, &quot;%sConnected to Sqlite%s\n&quot;, MiscLib.ColorGreen, MiscLib.ColorReset)
+171 
+172     // ------------------------------------------------------------------------------
+173     // Setup to use the ledger and send stuff to Eth.
+174     // ------------------------------------------------------------------------------
+175     SetupGeth()
+176 
+177     // ------------------------------------------------------------------------------
+178     // Setup HTTP End Points
+179     // ------------------------------------------------------------------------------
+180     mux := http.NewServeMux()
+181     mux.Handle(&quot;/api/v1/status&quot;, http.HandlerFunc(HandleStatus))          //
+182     mux.Handle(&quot;/status&quot;, http.HandlerFunc(HandleStatus))                 //
+183     mux.Handle(&quot;/api/v1/exit-server&quot;, http.HandlerFunc(HandleExitServer)) //
+184     mux.Handle(&quot;/login&quot;, http.HandlerFunc(HandleLogin))                   //    // // not a real login - just retruns success -
+185     mux.HandleFunc(&quot;/upload&quot;, UploadFileClosure(gCfg.UploadPath))         // URL to upload files with multi-part mime
+186 
+187     // For the list of end-points (URI Paths) see ./handle.go
+188     HandleTables(mux)
+189 
+190     mux.Handle(&quot;/&quot;, http.FileServer(http.Dir(gCfg.StaticPath)))
+191 
+192     // ------------------------------------------------------------------------------
+193     // Setup signal capture
+194     // ------------------------------------------------------------------------------
+195     stop := make(chan os.Signal, 1)
+196     signal.Notify(stop, os.Interrupt)
+197 
+198     // ------------------------------------------------------------------------------
+199     // Setup / Run the HTTP Server.
+200     // ------------------------------------------------------------------------------
+201     if isTLS {
+202         cfg := &amp;tls.Config{
+203             MinVersion:               tls.VersionTLS12,
+204             CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+205             PreferServerCipherSuites: true,
+206             CipherSuites: []uint16{
+207                 tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+208                 tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+209                 tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+210                 tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+211             },
+212         }
+213         // loggingHandler := NewApacheLoggingHandler(mux, os.Stderr)
+214         loggingHandler := NewApacheLoggingHandler(mux, logFilePtr)
+215         httpServer = &amp;http.Server{
+216             Addr:    *HostPort,
+217             Handler: loggingHandler,
+218             // Handler:      mux,
+219             TLSConfig:    cfg,
+220             TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
+221         }
+222     } else {
+223         // loggingHandler := NewApacheLoggingHandler(mux, os.Stderr)
+224         loggingHandler := NewApacheLoggingHandler(mux, logFilePtr)
+225         httpServer = &amp;http.Server{
+226             Addr:    *HostPort,
+227             Handler: loggingHandler,
+228             // Handler: mux,
+229         }
+230     }
+231 
+232     go func() {
+233         wg.Add(1)
+234         defer wg.Done()
+235         if isTLS {
+236             fmt.Fprintf(os.Stderr, &quot;%sListening on https://%s%s\n&quot;, MiscLib.ColorGreen, *HostPort, MiscLib.ColorReset)
+237             if err := httpServer.ListenAndServeTLS(*TLS_crt, *TLS_key); err != nil {
+238                 logger.Fatal(err)
+239             }
+240         } else {
+241             fmt.Fprintf(os.Stderr, &quot;%sListening on http://%s%s\n&quot;, MiscLib.ColorGreen, *HostPort, MiscLib.ColorReset)
+242             if err := httpServer.ListenAndServe(); err != nil {
+243                 logger.Fatal(err)
+244             }
+245         }
+246     }()
+247 
+248     // ------------------------------------------------------------------------------
+249     // Catch signals from [Contro-C]
+250     // ------------------------------------------------------------------------------
+251     select {
+252     case &lt;-stop:
+253         fmt.Fprintf(os.Stderr, &quot;\nShutting down the server... Received OS Signal...\n&quot;)
+254         ctx, cancel := context.WithTimeout(context.Background(), shutdownWaitTime*time.Second)
+255         defer cancel()
+256         err := httpServer.Shutdown(ctx)
+257         if err != nil {
+258             fmt.Printf(&quot;Error on shutdown: [%s]\n&quot;, err)
+259         }
+260     }
+261 
+262     // ------------------------------------------------------------------------------
+263     // Wait for HTTP server to exit.
+264     // ------------------------------------------------------------------------------
+265     wg.Wait()
+266 }
+267 
+268 func SetupGeth() {
+269     // TODO - xyzzy - some work to do.
+270 }
+
+</code></pre>
+
+<h2>Partials</h2>
+
+<h3>Single Page App</h3>
+
+<pre><code> 1 &lt;!DOCTYPE html&gt;
+ 2 &lt;html lang=&quot;en&quot;&gt;
+ 3 &lt;head&gt;
+ 4     &lt;!-- Required meta tags --&gt;
+ 5     &lt;meta charset=&quot;utf-8&quot;&gt;
+ 6     &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, shrink-to-fit=no&quot;&gt;
+ 7 
+ 8     &lt;!-- Bootstrap CSS --&gt;
+ 9     &lt;link rel=&quot;stylesheet&quot; href=&quot;/bootstrap-4.1.3/dist/css/bootstrap.css&quot;&gt;
+10     &lt;link rel=&quot;stylesheet&quot; href=&quot;/css/bootstrap.curulean-theme.min.css&quot;&gt;
+11     &lt;link rel=&quot;stylesheet&quot; href=&quot;/css/bootstrap-datepicker.min.css&quot;&gt;
+12     &lt;script src=&quot;https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js&quot;&gt;&lt;/script&gt;
+13 
+14     &lt;title&gt;PVP Documet Tracking&lt;/title&gt;
+15 &lt;style&gt;
+16 .some-style {
+17     
+18 }
+19 &lt;/style&gt;
+20 &lt;/head&gt;
+21 &lt;body&gt;
+22 
+23 &lt;nav class=&quot;navbar navbar-expand-md navbar-dark bg-dark&quot;&gt;
+24     &lt;div class=&quot;navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2&quot;&gt;
+25         &lt;ul class=&quot;navbar-nav mr-auto&quot;&gt;
+26             &lt;li class=&quot;nav-item show-logged-in&quot;&gt;
+27                 &lt;a class=&quot;nav-link&quot; href=&quot;#&quot; id=&quot;form00-render&quot;&gt;New Document&lt;/a&gt;
+28             &lt;/li&gt;
+29             &lt;li class=&quot;nav-item show-logged-in&quot;&gt;
+30                 &lt;a class=&quot;nav-link&quot; href=&quot;#&quot; id=&quot;form01-render&quot;&gt;List Documetns&lt;/a&gt;
+31             &lt;/li&gt;
+32             &lt;li class=&quot;nav-item show-anon&quot;&gt;
+33                 &lt;a class=&quot;nav-link&quot; href=&quot;#&quot; id=&quot;getStatus&quot;&gt;Status&lt;/a&gt;    
+34             &lt;/li&gt;
+35         &lt;/ul&gt;
+36     &lt;/div&gt;
+37     &lt;div class=&quot;mx-auto order-0&quot;&gt;
+38         &lt;a class=&quot;navbar-brand mx-auto&quot; href=&quot;#&quot;&gt;Document Signing&lt;/a&gt;
+39         &lt;button class=&quot;navbar-toggler&quot; type=&quot;button&quot; data-toggle=&quot;collapse&quot; data-target=&quot;.dual-collapse2&quot;&gt;
+40             &lt;span class=&quot;navbar-toggler-icon&quot;&gt;&lt;/span&gt;
+41         &lt;/button&gt;
+42     &lt;/div&gt;
+43     &lt;div class=&quot;navbar-collapse collapse w-100 order-3 dual-collapse2&quot;&gt;
+44         &lt;ul class=&quot;navbar-nav ml-auto&quot;&gt;
+45             &lt;li class=&quot;nav-item&quot;&gt;
+46                 &lt;a class=&quot;nav-link&quot; href=&quot;#&quot; id=&quot;login&quot;&gt;Login&lt;/a&gt;
+47             &lt;/li&gt;
+48         &lt;/ul&gt;
+49     &lt;/div&gt;
+50 &lt;/nav&gt;
+51 
+52     &lt;div class=&quot;top-of-page&quot;&gt;
+53 
+54         &lt;h1 id=&quot;speical-title&quot;&gt;&amp;nbsp;&lt;/h1&gt;
+55 
+56         &lt;div class=&quot;content container&quot; id=&quot;msg&quot;&gt;&lt;/div&gt;
+57         &lt;div class=&quot;content container&quot; id=&quot;body&quot;&gt;&lt;/div&gt;
+58 
+59     &lt;/div&gt;
+60 
+61     &lt;script src=&quot;/js/jquery-3.3.1.js&quot;&gt;&lt;/script&gt;
+62     &lt;script src=&quot;/js/popper-1.14.7.js&quot;&gt;&lt;/script&gt;
+63     &lt;script src=&quot;/js/bootstrap.js&quot;&gt;&lt;/script&gt;
+64     &lt;script src=&quot;/js/bootstrap-datepicker.min.js&quot;&gt;&lt;/script&gt;
+65 
+66     &lt;script src=&quot;/js/cfg.js?_ran_=00004&quot;&gt;&lt;/script&gt;
+67 
+68     &lt;script src=&quot;/js/doc-index.js?_ran_=00004&quot;&gt;&lt;/script&gt;
+69     &lt;script src=&quot;/js/doc-form25.js?_ran_=0004&quot;&gt;&lt;/script&gt; &lt;!-- login form --&gt;
+70     &lt;script src=&quot;/js/doc-form00.js?_ran_=0004&quot;&gt;&lt;/script&gt; &lt;!-- document upload sign --&gt;
+71     &lt;script src=&quot;/js/doc-form01.js?_ran_=0004&quot;&gt;&lt;/script&gt; &lt;!-- list documents --&gt;
+72     &lt;script src=&quot;/js/doc-form09.js?_ran_=0004&quot;&gt;&lt;/script&gt; &lt;!-- render welcome page --&gt;
+73 
+74 &lt;script&gt;
+75 renderForm09(null);
+76 $(&quot;#form00-render&quot;).click(renderForm00);     // Attach to link to paint the partial
+77 $(&quot;#form01-render&quot;).click(renderForm01);     // Attach to link to paint the partial
+78 &lt;/script&gt;
+79 
+80 &lt;/body&gt;
+81 &lt;/html&gt;
+
+</code></pre>
+
+<h3>Render a Partial</h3>
+
+<pre><code>
+ 1 // Login Form
+ 2 
+ 3 function submitForm25 ( event ) {
+ 4     event.preventDefault(); // Totally stop stuff happening
+ 5 
+ 6     console.log ( &quot;Click of submit button for form25 - login&quot; );
+ 7 
+ 8     var data = {
+ 9              &quot;username&quot;        : $(&quot;#username&quot;).val()
+10         , &quot;password&quot;        : $(&quot;#password&quot;).val()
+11         , &quot;__method__&quot;        : &quot;POST&quot;
+12         , &quot;_ran_&quot;             : ( Math.random() * 10000000 ) % 10000000
+13     };
+14     submitItData ( event, data, &quot;/login&quot;, function(data){
+15         console.log ( &quot;data=&quot;, data );
+16         if ( data &amp;&amp; data.status &amp;&amp; data.status == &quot;success&quot; ) {
+17             user_id = data.user_id; // sample: -- see bottom of file: www/js/pdoc-form02.js
+18             auth_token = data.auth_token;
+19             LoggInDone ( auth_token );
+20             $(&quot;.show-anon&quot;).hide();
+21             $(&quot;.show-logged-in&quot;).show();
+22             renderMessage ( &quot;Successful Login&quot;, &quot;You are now logged in&lt;br&gt;&quot;);
+23         } else {
+24             console.log ( &quot;ERROR: &quot;, data );
+25             renderError ( &quot;Failed to Login&quot;, data.msg );
+26         }
+27     }, function(data) {
+28         console.log ( &quot;ERROR: &quot;, data );
+29         renderError ( &quot;Failed to Login - Network communication failed.&quot;, &quot;Failed to communicate with the server.&quot; );
+30     }
+31     );
+32 }
+33 
+34 function renderForm25 ( event ) {
+35     var form = [ ''
+36         ,'&lt;div&gt;'
+37             ,'&lt;div class=&quot;row&quot;&gt;'
+38                 ,'&lt;div class=&quot;col-sm-6&quot;&gt;'
+39                     ,'&lt;div class=&quot;card bg-default&quot;&gt;'
+40                         ,'&lt;div class=&quot;card-header&quot;&gt;&lt;h2&gt;Login&lt;/h2&gt;&lt;/div&gt;'
+41                         ,'&lt;div class=&quot;card-body&quot;&gt;'
+42                             ,'&lt;form id=&quot;form01&quot;&gt;'
+43                                 ,'&lt;input name=&quot;app&quot;                                type=&quot;hidden&quot;     value=&quot;app.beefchain.com&quot;&gt;'
+44                                 ,'&lt;input name=&quot;auth_key&quot;                           type=&quot;hidden&quot;     value=&quot;1234&quot;&gt;'
+45                                 ,'&lt;div class=&quot;form-group&quot;&gt;'
+46                                     ,'&lt;label for=&quot;username&quot;&gt;Email&lt;/label&gt;'
+47                                     ,'&lt;input type=&quot;text&quot; class=&quot;form-control&quot; id=&quot;username&quot; name=&quot;username&quot;/&gt;'
+48                                 ,'&lt;/div&gt;'
+49                                 ,'&lt;div class=&quot;form-group&quot;&gt;'
+50                                     ,'&lt;label for=&quot;password&quot;&gt;Password&lt;/label&gt;'
+51                                     ,'&lt;input type=&quot;password&quot; class=&quot;form-control&quot; id=&quot;password&quot; name=&quot;password&quot;/&gt;'
+52                                 ,'&lt;/div&gt;'
+53                                 ,'&lt;button type=&quot;button&quot; class=&quot;btn btn-primary&quot; id=&quot;form25-submit&quot;&gt;Log In&lt;/button&gt;'
+54                             ,'&lt;/form&gt;'
+55                         ,'&lt;/div&gt;'
+56                     ,'&lt;/div&gt;'
+57                 ,'&lt;/div&gt;'
+58             ,'&lt;/div&gt;'
+59         ,'&lt;/div&gt;'
+60     ].join(&quot;\n&quot;);
+61     $(&quot;#body&quot;).html(form);
+62     // Add events
+63     $(&quot;#form25-submit&quot;).click(submitForm25);
+64     // xyzzy - additional click events forgot-pass, forgot-acct
+65 }
+66 $(&quot;#form25-render&quot;).click(renderForm25);     // Attach to link to paint the partial
+
+</code></pre>
 
 </div>
 
