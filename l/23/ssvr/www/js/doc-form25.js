@@ -18,10 +18,11 @@ function submitForm25 ( event ) {
 		if ( data && data.status && data.status == "success" ) {
 			user_id = data.user_id; // sample: -- see bottom of file: www/js/pdoc-form02.js
 			auth_token = data.auth_token;
-			LoggInDone ( jwtToken ); // SetupJWTBerrer();
+			LoggInDone ( auth_token );
 			$(".show-anon").hide();
 			$(".show-logged-in").show();
 			renderMessage ( "Successful Login", "You are now logged in<br>");
+console.log ( "AAA", data );
 		} else {
 			console.log ( "ERROR: ", data );
 			renderError ( "Failed to Login", data.msg );
@@ -33,11 +34,7 @@ function submitForm25 ( event ) {
 	);
 }
 
-//    ,'<div id="formFooter">'
-//     ,'<a class="underlineHover" href="#" id="forgot-pass">Forgot Password?</a>'
-//    ,'<a class="underlineHover" href="#" id="forgot-acct">Forgot Account?</a>'
 function renderForm25 ( event ) {
-//	renderClearMessage();
 	var form = [ ''
 		,'<div>'
 			,'<div class="row">'

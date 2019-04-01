@@ -1,6 +1,6 @@
 
 var isLoggedIn = false;
-var jwtToken = "";
+var auth_token = "" ;
 var xsrf_token = "" ;
 var g_auth_key = "1234";
 
@@ -116,8 +116,6 @@ LoggInDone = function ( JWTToken ) {
 	$("#body").html("<span></span>");
 	// <a class="nav-link" href="#" id="login">Login</a>
 	isLoggedIn = true;
-	jwtToken = JWTToken;
-	SetupJWTBerrer();
 	$("#login").html("Logout");
 	$("#login").click(LoggOut);
 }
@@ -128,8 +126,8 @@ LoggOut = function ( event ) {
 		event.preventDefault();
 	}
 	isLoggedIn = false;
-	jwtToken = "";
 	xsrf_token = "" ;
+	auth_token = "" ;
 	$("#login").html("Login");
 	$("#login").click(doLogin);
 	$(".show-anon").show();
