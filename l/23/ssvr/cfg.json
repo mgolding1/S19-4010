@@ -1,0 +1,5 @@
+{
+	"db_flag": "HandleCRUD,OtherFlag",
+	"log_file_name": "./log/log.out",
+	"auth_key": "1234"
+}
