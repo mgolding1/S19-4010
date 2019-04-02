@@ -22,7 +22,6 @@ function submitForm25 ( event ) {
 			$(".show-anon").hide();
 			$(".show-logged-in").show();
 			renderMessage ( "Successful Login", "You are now logged in<br>");
-console.log ( "AAA", data );
 		} else {
 			console.log ( "ERROR: ", data );
 			renderError ( "Failed to Login", data.msg );

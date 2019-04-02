@@ -6,6 +6,8 @@ function submitForm01 ( event ) {
 		event.preventDefault(); // Totally stop stuff happening
 	}
 
+console.log ( "a" );
+
 	$("#msg").html("");
 
 	var data = {
@@ -15,6 +17,7 @@ function submitForm01 ( event ) {
 	submitItData ( event, data, "/api/v1/documents", function(data){
 			if ( data && data.status && data.status == "success" && data.data && data.data.length > 0 ) {
 				search_data = data.data;
+console.log("b");
 				renderForm01 ( event ); // next !!!!
 			} else {
 				console.log ( "ERROR: ", data );
@@ -36,6 +39,9 @@ function renderForm01 ( event ) {
 			,'</th>'
 			,'<th>'
 				,'Email Address'
+			,'</th>'
+			,'<th>'
+				,'&nbsp;'
 			,'</th>'
 		,'</tr>'
 	].join("\n");

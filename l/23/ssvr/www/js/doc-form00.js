@@ -71,7 +71,7 @@ function renderForm00 ( event ) {
   		,'<pre id="result"></pre>'
 	].join("\n");
 	$("#body").html(form);
-	$("#form00-submit").click(submitForm01);
+	$("#form00-submit").click(submitForm00);
 	$('#file-id').on('change',function(){
 		var fileName = $(this).val(); 
 		if ( fileName.startsWith('C:\\fakepath\\') ) {

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/pschlump/Go-FTL/server/sizlib"
 	"github.com/pschlump/MiscLib"
@@ -78,8 +79,9 @@ func HandleStoredProcedureConfig(www http.ResponseWriter, req *http.Request, SPD
 			return
 		}
 		stmt := fmt.Sprintf("select %s ( %s ) as \"x\"", SPData.StoredProcedureName, vals)
+		stmt, inputData, _ = BindFixer(stmt, inputData)
 		if db_flag["HandleCRUDSP"] {
-			fmt.Printf("AT: %s stmt [%s]\n", godebug.LF(), stmt)
+			fmt.Printf("AT: %s stmt [%s] data=%s\n", godebug.LF(), stmt, godebug.SVar(inputData))
 		}
 		var rawData string
 		err = SqliteQueryRow(stmt, inputData...).Scan(&rawData)
@@ -240,10 +242,11 @@ func HandleCRUDConfig(www http.ResponseWriter, req *http.Request, CrudData CrudC
 				return
 			}
 			stmt := fmt.Sprintf("insert into %q ( %s ) values ( %s )", CrudData.TableName, cols, vals)
+			stmt2, inputData2, _ := BindFixer(stmt, inputData)
 			if db_flag["HandleCRUD"] {
-				fmt.Printf("AT: %s stmt [%s] data=%s\n", godebug.LF(), stmt, godebug.SVar(vals))
+				fmt.Printf("AT: %s stmt [%s] data=%s\n", godebug.LF(), stmt2, godebug.SVar(inputData2))
 			}
-			err = SqliteUpdate(stmt, inputData...)
+			err = SqliteInsert(stmt2, inputData2...)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error inserting to %s ->%s<- error %s at %s\n", CrudData.TableName, stmt, err, godebug.LF())
 				www.WriteHeader(http.StatusInternalServerError) // 500
@@ -274,6 +277,7 @@ func HandleCRUDConfig(www http.ResponseWriter, req *http.Request, CrudData CrudC
 				return
 			}
 			stmt := fmt.Sprintf("update %q set %s where \"id\" = $1", CrudData.TableName, updCols)
+			stmt, inputData, _ = BindFixer(stmt, inputData)
 			if db_flag["HandleCRUD"] {
 				fmt.Printf("AT: %s stmt [%s] data=%s\n", godebug.LF(), stmt, godebug.SVar(inputData))
 			}
@@ -352,6 +356,7 @@ func MultiInsertUpdate(www http.ResponseWriter, req *http.Request, CrudData Crud
 				nErr++
 			} else {
 				stmt := fmt.Sprintf("insert into %q ( %s ) values ( %s )", CrudData.TableName, cols, vals)
+				stmt, inputData, _ = BindFixer(stmt, inputData)
 				if db_flag["HandleCRUD"] {
 					fmt.Printf("AT: %s stmt [%s] data=%s pos=%d\n", godebug.LF(), stmt, godebug.SVar(inputData), ii)
 				}
@@ -375,6 +380,7 @@ func MultiInsertUpdate(www http.ResponseWriter, req *http.Request, CrudData Crud
 				nErr++
 			} else {
 				stmt := fmt.Sprintf("update %q set %s where \"id\" = $1", CrudData.TableName, updCols)
+				stmt, inputData, _ = BindFixer(stmt, inputData)
 				if db_flag["HandleCRUD"] {
 					fmt.Printf("AT: %s stmt [%s] data=%s pos=%d\n", godebug.LF(), stmt, godebug.SVar(inputData), ii)
 				}
@@ -741,4 +747,104 @@ func HandleTables(mux *http.ServeMux) {
 	for ii, cc := range StoredProcConfig {
 		mux.Handle(cc.URIPath, http.HandlerFunc(handleSPClosure(cc, ii)))
 	}
+}
+
+var DbType = "SQLite"
+
+// Convert from Postgres $1, ... $n to
+//    SQLite 	- ?, ?, ? - with positional replacement
+//    MySql 	- ?, ?, ? - with positional replacement
+//    MariaDB 	- ?, ?, ? - with positional replacement
+//    Oracle 	- :n0, :n1, :n2 - named and return names.
+func BindFixer(stmt string, vars []interface{}) (modStmt string, modVars []interface{}, names []string) {
+	if DbType == "Postgres" {
+		modStmt = stmt
+		modVars = vars
+		return
+	}
+	// fmt.Printf("%sInput Stmt[%s] callFrom[%s]%s\n", MiscLib.ColorRed, stmt, godebug.LF(2), MiscLib.ColorReset)
+	if DbType == "SQLite" || DbType == "MySQL" || DbType == "MariaDB" {
+
+		modVars := make([]interface{}, 0, len(vars))
+		var b bytes.Buffer
+		foo := bufio.NewWriter(&b)
+
+		st := 0
+		for i := 0; i < len(stmt); i++ {
+			c := stmt[i]
+			if st == 0 && c == '?' { // Already Converted
+				return stmt, vars, names
+			} else if st == 0 && c == '\'' {
+				st = 1
+				foo.WriteByte(c)
+			} else if st == 0 && c == '"' {
+				st = 2
+				foo.WriteByte(c)
+			} else if st == 1 && c == '\'' {
+				st = 0
+				foo.WriteByte(c)
+			} else if st == 2 && c == '"' {
+				st = 0
+				foo.WriteByte(c)
+			} else if st == 0 && c == '$' {
+				var j int
+				for j = i + 1; j < len(stmt) && stmt[j] >= '0' && stmt[j] <= '9'; j++ {
+				}
+				nth, _ := strconv.Atoi(stmt[i+1 : j])
+				foo.WriteByte('?')
+				modVars = append(modVars, vars[nth-1])
+				// fmt.Printf("nth=%d vars[%d]=%v modVars=%s\n", nth, nth-1, vars[nth-1], godebug.SVar(modVars))
+				i = j - 1
+			} else {
+				foo.WriteByte(c)
+			}
+		}
+		foo.Flush()
+		modStmt = b.String() // Fetch the data back from the buffer
+		// fmt.Printf("%sAT: %s vars = %s, modVars2 = %s%s\n", MiscLib.ColorYellow, godebug.LF(), godebug.SVar(vars), godebug.SVar(modVars), MiscLib.ColorReset)
+		return modStmt, modVars, names
+	}
+	if DbType == "MsSQL" { // Microsoft SQL Server
+
+		modVars = make([]interface{}, 0, len(vars))
+		var b bytes.Buffer
+		foo := bufio.NewWriter(&b)
+
+		st := 0
+		// assume Postgres $1, $2 ... $n, translate to ? in order
+		for i := 0; i < len(stmt); i++ {
+			c := stmt[i]
+			if st == 0 && c == '?' { // Already Converted
+				return stmt, vars, names
+			} else if st == 0 && c == '\'' {
+				st = 1
+				foo.WriteByte(c)
+			} else if st == 0 && c == '"' {
+				st = 2
+				foo.WriteByte('[') // Icky non-standard quotes.
+			} else if st == 1 && c == '\'' {
+				st = 0
+				foo.WriteByte(c)
+			} else if st == 2 && c == '"' {
+				st = 0
+				foo.WriteByte(']')
+			} else if st == 0 && c == '$' {
+				var j int
+				for j = i + 1; j < len(stmt) && stmt[j] >= '0' && stmt[j] <= '9'; j++ {
+				}
+				nth, _ := strconv.Atoi(stmt[i+1 : j])
+				foo.WriteByte('?')
+				modVars = append(modVars, vars[nth-1])
+				i = j - 1
+			} else {
+				foo.WriteByte(c)
+			}
+		}
+		foo.Flush()
+		modStmt = b.String() // Fetch the data back from the buffer
+		return
+	}
+
+	panic("Not implemented")
+	return
 }

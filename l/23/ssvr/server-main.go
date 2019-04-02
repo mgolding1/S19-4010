@@ -15,9 +15,13 @@ import (
 	"time"
 
 	"github.com/Univ-Wyo-Education/S19-4010/l/23/ssvr/ReadConfig"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
+	// "github.com/Univ-Wyo-Education/S19-4010/a/07/eth/lib/SignedDataVersion01"
 )
 
 // ----------------------------------------------------------------------------------
@@ -54,11 +58,26 @@ type GlobalConfigData struct {
 	TLS_key string `json:"tls_key" default:""`
 
 	// Path where files are temporary uploaded to
-	UploadPath string `json:"upload_path" default:"./files"`
+	UploadPath    string `json:"upload_path" default:"./www/files"`
+	URLUploadPath string `json:"url_upload_path" default:"/files"`
 
 	TemplateDir string `default:"./tmpl"`
 
 	StaticPath string `json:"static_path" default:"www"`
+
+	URL_WS_8546     string            `json:"geth_ws_8546" default:"ws://127.0.0.1:9545"`         // example: ws://192.168.0.200:8546
+	URL_8545        string            `json:"geth_rpc_8545" default:"http://127.0.0.1:9545"`      // example: "http://192.168.0.200:8545".
+	ContractAddress map[string]string `json:"ContractAddress"`                                    // Contract names to contract addresses map
+	FromAddress     string            `json:"FromAddress"`                                        // Address of account to pull funds from - this is the signing account
+	KeyFilePassword string            `json:"key_file_password" default:"$ENV$Key_File_Password"` // Password to access KeyFile
+	KeyFile         string            `json:"key_file" default:"$ENV$Key_File"`                   // File name for pub/priv key for Address
+
+	Client    *ethclient.Client `json:"-"` // used in secalling contract
+	ClientRPC *rpc.Client       `json:"-"`
+	ClientWS  *rpc.Client       `json:"-"`
+
+	AccountKey          *keystore.Key `json:"-"`
+	ASignedDataContract *SignedDataContract
 }
 
 var gCfg GlobalConfigData
@@ -172,7 +191,12 @@ func main() {
 	// ------------------------------------------------------------------------------
 	// Setup to use the ledger and send stuff to Eth.
 	// ------------------------------------------------------------------------------
-	SetupGeth()
+	err = ConnectToEthereum( /*cfg *EthereumConfig*/ )
+	if err != nil {
+		fmt.Printf("Error: %s on connecting to Geth/Ethereum - fatal.\n", err)
+		os.Exit(1)
+	}
+	fmt.Fprintf(os.Stderr, "%sConnected to Ethereum (Geth or Ganache)%s\n", MiscLib.ColorGreen, MiscLib.ColorReset)
 
 	// ------------------------------------------------------------------------------
 	// Setup HTTP End Points
@@ -184,15 +208,10 @@ func main() {
 	mux.Handle("/login", http.HandlerFunc(HandleLogin))                   //	// // not a real login - just retruns success -
 	mux.HandleFunc("/upload", UploadFileClosure(gCfg.UploadPath))         // URL to upload files with multi-part mime
 
-	// temp test
-	// mux.Handle("/api/v1/t_documents", http.HandlerFunc(HandleStatus)) //
-
 	// For the list of end-points (URI Paths) see ./handle.go
 	HandleTables(mux)
 
 	mux.Handle("/", http.FileServer(http.Dir(gCfg.StaticPath)))
-
-	//	mux.DumpPath()
 
 	// ------------------------------------------------------------------------------
 	// Setup signal capture
@@ -268,8 +287,4 @@ func main() {
 	// Wait for HTTP server to exit.
 	// ------------------------------------------------------------------------------
 	wg.Wait()
-}
-
-func SetupGeth() {
-	// xyzzy - some work to do.
 }

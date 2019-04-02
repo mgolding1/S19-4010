@@ -15,8 +15,8 @@ import (
 func UploadFileClosure(pth string) func(w http.ResponseWriter, r *http.Request) {
 
 	if !filelib.Exists(pth) {
-		fmt.Printf("Missing directory [%s]\n", pth)
-		os.Exit(1)
+		fmt.Printf("Missing directory [%s] creating it\n", pth)
+		os.MkdirAll(pth, 0755)
 	}
 
 	// UploadFile uploads a file to the server
@@ -41,32 +41,38 @@ func UploadFileClosure(pth string) func(w http.ResponseWriter, r *http.Request) 
 		mimeType := handle.Header.Get("Content-Type")
 		fmt.Printf("mimeType [%s]\n", mimeType)
 
-		var file_name, aws_file_name, orig_file_name, file_hash string
+		var file_name, aws_file_name, orig_file_name, file_hash, url_file_name string
 		switch mimeType {
 		case "image/jpeg":
-			file_name, aws_file_name, orig_file_name, file_hash, err = saveFile(w, file, handle, ".jpg", pth)
+			file_name, aws_file_name, orig_file_name, file_hash, url_file_name, err = saveFile(w, file, handle, ".jpg", pth)
 		case "image/png":
-			file_name, aws_file_name, orig_file_name, file_hash, err = saveFile(w, file, handle, ".png", pth)
+			file_name, aws_file_name, orig_file_name, file_hash, url_file_name, err = saveFile(w, file, handle, ".png", pth)
 		case "application/pdf":
-			file_name, aws_file_name, orig_file_name, file_hash, err = saveFile(w, file, handle, ".pdf", pth)
+			file_name, aws_file_name, orig_file_name, file_hash, url_file_name, err = saveFile(w, file, handle, ".pdf", pth)
 		default:
 			fmt.Printf("AT: %s\n", godebug.LF())
 			jsonResponse(w, http.StatusBadRequest, fmt.Sprintf(`{"status":"error","msg":"The file format (mimeType=%s) is not valid."}`, mimeType))
 			return
 		}
 
-		stmt := `update "t_paper_docs" set "file_name" = $2, "orig_file_name" = $3 where "id" = $1`
-		fmt.Printf("stmt = %s, id=%s, file_name=%s, orig_file_name=%s aws_file_name=%s\n", stmt, id, file_name, orig_file_name)
+		/*
+		   update "t_paper_docs" set "file_name" = $2, "orig_file_name" = $3 where "id" = $1, id=e02587d8-8084-4856-563e-806b92c2e2e9, file_name=./files/e8a864cb348747641cb1be134829f754515204347874550d316520dda0b37f78.jpg, orig_file_name=alaska.jpg aws_file_name=%!s(MISSING)
+		   		stmt := `update "documents" set "file_name" = $2, "orig_file_name" = $3 where "id" = $1`
+		   AT: File: /Users/corwin/go/src/github.com/Univ-Wyo-Education/S19-4010/l/23/ssvr/upload.go LineNo:63 err=no such table: t_paper_docs
+		*/
+		stmt := `update "documents" set "file_name" = $2, "orig_file_name" = $3, "url_file_name" = $4 where "id" = $1`
+		fmt.Printf("stmt = %s, id=%s, file_name=%s, orig_file_name=%s\n", stmt, id, file_name, orig_file_name)
 
-		err = SqliteUpdate(stmt, id, file_name, orig_file_name, aws_file_name)
+		err = SqliteUpdate(stmt, id, file_name, orig_file_name, url_file_name)
 		if err != nil {
 			fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
 			jsonResponse(w, http.StatusBadRequest, fmt.Sprintf(`{"status":"error","msg":"Failed to save data to PG. error=%s"}`, err))
 			return
 		}
 
-		// xyzzy - call contract at this point.
 		_ = file_hash
+
+		// xyzzy - call contract at this point.
 
 		// itemID + Values
 		/*
@@ -96,7 +102,7 @@ func UploadFileClosure(pth string) func(w http.ResponseWriter, r *http.Request) 
 // 15e42502-e7a5-44e2-6920-b410b9308412
 //    insert into t_paper_docs ("id" ) values ( '15e42502-e7a5-44e2-6920-b410b9308412' );
 
-func saveFile(w http.ResponseWriter, file multipart.File, handle *multipart.FileHeader, ext string, pth string) (file_name, aws_file_name, orig_file_name, file_hash string, err error) {
+func saveFile(w http.ResponseWriter, file multipart.File, handle *multipart.FileHeader, ext string, pth string) (file_name, aws_file_name, orig_file_name, file_hash, url_file_name string, err error) {
 	var data []byte
 	data, err = ioutil.ReadAll(file)
 	if err != nil {
@@ -108,6 +114,7 @@ func saveFile(w http.ResponseWriter, file multipart.File, handle *multipart.File
 	file_hash_byte := HashStrings.HashBytes(data)
 	file_hash = fmt.Sprintf("%x", file_hash_byte)
 	aws_file_name = fmt.Sprintf("%s%s", file_hash, ext)
+	url_file_name = fmt.Sprintf("%s/%s%s", gCfg.URLUploadPath, file_hash, ext)
 	file_name = fmt.Sprintf("%s/%s%s", pth, file_hash, ext)
 
 	err = ioutil.WriteFile(file_name, data, 0644)
