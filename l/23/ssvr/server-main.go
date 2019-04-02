@@ -191,12 +191,14 @@ func main() {
 	// ------------------------------------------------------------------------------
 	// Setup to use the ledger and send stuff to Eth.
 	// ------------------------------------------------------------------------------
-	err = ConnectToEthereum( /*cfg *EthereumConfig*/ )
-	if err != nil {
-		fmt.Printf("Error: %s on connecting to Geth/Ethereum - fatal.\n", err)
-		os.Exit(1)
+	if false {
+		err = ConnectToEthereum( /*cfg *EthereumConfig*/ )
+		if err != nil {
+			fmt.Printf("Error: %s on connecting to Geth/Ethereum - fatal.\n", err)
+			os.Exit(1)
+		}
+		fmt.Fprintf(os.Stderr, "%sConnected to Ethereum (Geth or Ganache)%s\n", MiscLib.ColorGreen, MiscLib.ColorReset)
 	}
-	fmt.Fprintf(os.Stderr, "%sConnected to Ethereum (Geth or Ganache)%s\n", MiscLib.ColorGreen, MiscLib.ColorReset)
 
 	// ------------------------------------------------------------------------------
 	// Setup HTTP End Points

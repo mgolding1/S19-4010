@@ -281,3 +281,21 @@ stmt: insert into "documents" ( "id", "email", "real_name", "phone_number", "add
 127.0.0.1 - - [01/Apr/2019 11:38:13] "GET /api/v1/documents?email=pschlump%40gmail.com&real_name=test03&phone_number=7202097888&address_usps=1005%20E.%20Custer%20St&note=&auth_key=1234&__method__=POST&_ran_=7515752.028957081 HTTP/1.1 200 64" 0.002125
 stmt: update "documents" set "file_name" = ?, "orig_file_name" = ? where "id" = ? data: [./files/ea2f0ed84ff2de2fec7544bcac6192f1d412d140ead04ab1b52d52a0c303955b.jpg nevada.jpg 82f5d730-e122-43c1-56fe-7c2249920f36] elapsed: 889.572µs
 127.0.0.1 - - [01/Apr/2019 11:38:13] "POST /upload HTTP/1.1 201 151" 0.001441
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET / HTTP/1.1 200 2760" 0.004772
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /bootstrap-4.3.1-dist/css/bootstrap.css HTTP/1.1 200 192348" 0.000318
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /css/bootstrap.curulean-theme.min.css HTTP/1.1 304 0" 0.000050
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /bootstrap-4.3.1-dist/js/bootstrap.js HTTP/1.1 200 131637" 0.000258
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /js/jquery-3.3.1.js HTTP/1.1 304 0" 0.000067
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /js/popper-1.14.7.js HTTP/1.1 304 0" 0.000074
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /js/cfg.js?_ran_=00007 HTTP/1.1 304 0" 0.000054
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /js/doc-index.js?_ran_=00007 HTTP/1.1 304 0" 0.000054
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /js/doc-form25.js?_ran_=0007 HTTP/1.1 304 0" 0.000152
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /js/doc-form00.js?_ran_=0007 HTTP/1.1 304 0" 0.000043
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /js/doc-form01.js?_ran_=0007 HTTP/1.1 304 0" 0.000047
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /js/doc-form09.js?_ran_=0007 HTTP/1.1 304 0" 0.000044
+stmt: select * from "documents" order by "created" data: [] elapsed: 107.532µs
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /api/v1/documents?auth_key=1234&_ran_=1827441.944967856 HTTP/1.1 200 32" 0.000424
+127.0.0.1 - - [02/Apr/2019 09:46:39] "GET /favicon.ico HTTP/1.1 404 19" 0.000040
+127.0.0.1 - - [02/Apr/2019 09:46:44] "GET /js/popper.js.map HTTP/1.1 404 19" 0.000037
+127.0.0.1 - - [02/Apr/2019 09:46:44] "GET /bootstrap-4.3.1-dist/js/bootstrap.js.map HTTP/1.1 200 250568" 0.000271
+127.0.0.1 - - [02/Apr/2019 09:46:44] "GET /bootstrap-4.3.1-dist/css/bootstrap.css.map HTTP/1.1 200 492048" 0.000319
