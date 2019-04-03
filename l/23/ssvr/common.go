@@ -124,6 +124,15 @@ func HandleLogin(www http.ResponseWriter, req *http.Request) {
 		www.WriteHeader(401) // Not Authorized
 	}
 
+	var found string
+	err := SqliteQueryRow(`select 'found' as "x" from users where username = $1 and password = $2`, un, pw).Scan(&found)
+	if err != nil || found == "" {
+		fmt.Printf("Login Failed: %s\n", err)
+		www.WriteHeader(401) // Not Authorized
+		return
+	}
+	// fmt.Printf("found=%s\n", found)
+
 	if isTLS {
 		www.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 	}

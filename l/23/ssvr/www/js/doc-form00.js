@@ -28,7 +28,7 @@ function renderForm00 ( event ) {
 			,'<div class="row">'
 				,'<div class="col-sm-10">'
 					,'<div class="card bg-default">'
-						,'<div class="card-header"><h2>Save Document</h2></div>'
+						,'<div class="card-header"><h2>Sign Document</h2></div>'
 						,'<div class="card-body">'
 							,'<form id="form00">'
 								,'<div class="form-group">'

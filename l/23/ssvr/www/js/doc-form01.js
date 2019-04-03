@@ -38,7 +38,13 @@ function renderForm01 ( event ) {
 				,'Name'
 			,'</th>'
 			,'<th>'
+				,'Document Name'
+			,'</th>'
+			,'<th>'
 				,'Email Address'
+			,'</th>'
+			,'<th>'
+				,'Date Signed'
 			,'</th>'
 			,'<th>'
 				,'&nbsp;'
@@ -54,10 +60,16 @@ function renderForm01 ( event ) {
 					,search_data[ii].real_name
 				,'</td>'
 				,'<td>'
+					,search_data[ii].orig_file_name
+				,'</td>'
+				,'<td>'
 					,search_data[ii].email
 				,'</td>'
 				,'<td>'
-					,'<a href="#" class="btn btn-primary" onClick=\'xyzzy("'+ search_data[ii].id +'")\'>Show Document</a>'
+					,search_data[ii].created
+				,'</td>'
+				,'<td>'
+					,'<a href="#" class="btn btn-primary" onClick=\'renderDoc("'+ search_data[ii].id +'")\'>Show Document</a>'
 				,'</td>'
 			,'</tr>'
 		].join("\n") );
