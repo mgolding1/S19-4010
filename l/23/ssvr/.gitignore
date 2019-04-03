@@ -1,7 +1,10 @@
 ssvr
+:ed
+:set
 mydb.db
 o
 oo
 files
 note.1
 todo.1
+log
