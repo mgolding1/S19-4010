@@ -138,6 +138,20 @@
 		"type": "function"
 	},
 	{
+		"constant": true,
+		"inputs": [],
+		"name": "isOwner",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"constant": false,
 		"inputs": [
 			{
@@ -168,7 +182,7 @@
 		"constant": false,
 		"inputs": [
 			{
-				"name": "_newOwner",
+				"name": "newOwner",
 				"type": "address"
 			}
 		],
@@ -258,18 +272,6 @@
 			}
 		],
 		"name": "Withdrawn",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"name": "previousOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipRenounced",
 		"type": "event"
 	},
 	{
