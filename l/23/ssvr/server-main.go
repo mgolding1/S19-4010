@@ -76,8 +76,11 @@ type GlobalConfigData struct {
 	ClientRPC *rpc.Client       `json:"-"`
 	ClientWS  *rpc.Client       `json:"-"`
 
-	AccountKey          *keystore.Key `json:"-"`
-	ASignedDataContract *SignedDataContract
+	AccountKey *keystore.Key `json:"-"`
+
+	ASignedDataContract *SignedDataContract `json:"-"`
+
+	BaseURLTmpl string `json:"base_url_tmpl" default:"http://127.0.0.1/base.html?hash={{.hash}}"`
 }
 
 var gCfg GlobalConfigData
@@ -191,14 +194,12 @@ func main() {
 	// ------------------------------------------------------------------------------
 	// Setup to use the ledger and send stuff to Eth.
 	// ------------------------------------------------------------------------------
-	if false {
-		err = ConnectToEthereum( /*cfg *EthereumConfig*/ )
-		if err != nil {
-			fmt.Printf("Error: %s on connecting to Geth/Ethereum - fatal.\n", err)
-			os.Exit(1)
-		}
-		fmt.Fprintf(os.Stderr, "%sConnected to Ethereum (Geth or Ganache)%s\n", MiscLib.ColorGreen, MiscLib.ColorReset)
+	err = ConnectToEthereum()
+	if err != nil {
+		fmt.Printf("Error: %s on connecting to Geth/Ethereum - fatal.\n", err)
+		os.Exit(1)
 	}
+	fmt.Fprintf(os.Stderr, "%sConnected to Ethereum (Geth or Ganache)%s\n", MiscLib.ColorGreen, MiscLib.ColorReset)
 
 	// ------------------------------------------------------------------------------
 	// Setup HTTP End Points
@@ -207,8 +208,14 @@ func main() {
 	mux.Handle("/api/v1/status", http.HandlerFunc(HandleStatus))          //
 	mux.Handle("/status", http.HandlerFunc(HandleStatus))                 //
 	mux.Handle("/api/v1/exit-server", http.HandlerFunc(HandleExitServer)) //
-	mux.Handle("/login", http.HandlerFunc(HandleLogin))                   //	// // not a real login - just retruns success -
-	mux.HandleFunc("/upload", UploadFileClosure(gCfg.UploadPath))         // URL to upload files with multi-part mime
+	mux.Handle("/login", http.HandlerFunc(HandleLogin))                   // !! not a real login - just retruns success !!
+	mux.HandleFunc("/upload", UploadFileClosure(gCfg.UploadPath))         // URL to upload files with multi-part mime data type
+
+	mux.Handle("/api/v1/save-data", http.HandlerFunc(HandleStatus))   // xyzzy - TODO - save data to on-chain (uses setData) new app+name+hash
+	mux.Handle("/api/v1/add-to-data", http.HandlerFunc(HandleStatus)) // xyzzy - TODO - Add a new document to chain with "EventName" Some events are final and can not be repeated.
+	mux.Handle("/api/v1/get-data", http.HandlerFunc(HandleStatus))    // xyzzy - TODO - get data given app and name (uses getData) - app+name -> hash
+	mux.Handle("/api/v1/get-url", http.HandlerFunc(HandleStatus))     // xyzzy - TODO - return URL given app and Name (uses getData)
+	// Uses gCfg.BaseURLTmpl string `json:"base_url_tmpl" default:"http://127.0.0.1/base.html?hash={{.hash}}"`
 
 	// For the list of end-points (URI Paths) see ./handle.go
 	HandleTables(mux)
