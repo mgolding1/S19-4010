@@ -6,8 +6,6 @@ function submitForm01 ( event ) {
 		event.preventDefault(); // Totally stop stuff happening
 	}
 
-console.log ( "a" );
-
 	$("#msg").html("");
 
 	var data = {
@@ -17,7 +15,6 @@ console.log ( "a" );
 	submitItData ( event, data, "/api/v1/documents", function(data){
 			if ( data && data.status && data.status == "success" && data.data && data.data.length > 0 ) {
 				search_data = data.data;
-console.log("b");
 				renderForm01 ( event ); // next !!!!
 			} else {
 				console.log ( "ERROR: ", data );
@@ -32,6 +29,10 @@ console.log("b");
 
 function renderForm01 ( event ) {
 	render5SecClearMessage();
+	if ( ! isLoggedIn ) {
+		$("#form25-render").click(renderForm25); 	// Attach to link to paint the partial
+		return
+	}
 	var thead = [ ''
 		,'<tr>'
 			,'<th>'

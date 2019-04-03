@@ -11,6 +11,11 @@ var theHistory ;
 var theDocument ;
 
 function renderForm02 ( event ) {
+	render5SecClearMessage();
+	if ( ! isLoggedIn ) {
+		$("#form25-render").click(renderForm25); 	// Attach to link to paint the partial
+		return
+	}
 	var form = [ ''
 		,'<div>'
 			,'<div class="row">'
@@ -33,14 +38,16 @@ function renderForm02 ( event ) {
 		,'</div>'
 	].join("\n");
 	$("#body").html(form);
-	// Add events
-	$("#form02-submit").click(submitForm02);
-	// xyzzy - additional click events forgot-pass, forgot-acct
+	// $("#form02-submit").click(submitForm02);
 }
 
 var pdf_url ;
 
 function renderDoc(id){
+	if ( ! isLoggedIn ) {
+		$("#form25-render").click(renderForm25); 	// Attach to link to paint the partial
+		return
+	}
 	// take list of data, pull out "id"
 	// if .pdf, if image etc. -- set theDocument for correct data to render.
 	// remeber document history! -- When Signed, Digital Signature etc.
@@ -73,7 +80,7 @@ function renderDoc(id){
 					,'<th>File Name</th><td>',data.orig_file_name,'</td>'
 				,'</tr>'
 				,'<tr>'
-					,'<th>Digital Signature</th><td>',data.file_name,'</td>'	// xyzzy - change this	- what about .txid?
+					,'<th>Digital Signature</th><td>',data.hash,"/",data.signature,'<br><b>Signature has been Verified on the Ethereum BlockChain</b></td>'	
 				,'</tr>'
 			,'</table>'
 		].join("\n");
@@ -83,7 +90,6 @@ function renderDoc(id){
 	}
 
 	renderForm02();
-
 }
 
 

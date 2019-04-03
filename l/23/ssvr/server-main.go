@@ -15,9 +15,11 @@ import (
 	"time"
 
 	"github.com/Univ-Wyo-Education/S19-4010/l/23/ssvr/ReadConfig"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/pschlump/HashStrings"
 	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
@@ -51,6 +53,13 @@ type GlobalConfigData struct {
 	DebugFlag string `json:"db_flag"`
 
 	AuthKey string `json:"auth_key" default:""` // Auth key by default is turned off.
+
+	// S3 login/config options.
+	// Also uses
+	//		AWS_ACCESS_KEY_ID=AKIAJZDMAULPRXT7CVWA		((example))
+	//		AWS_SECRET_KEY=........
+	S3_bucket string `json:"s3_bucket" default:"acb-document"`
+	S3_region string `json:"s3_bucket" default:"$ENV$AWS_REGION"`
 
 	// Defauilt file for TLS setup (Shoud include path), both must be specified.
 	// These can be over ridden on the command line.
@@ -93,6 +102,7 @@ var httpServer *http.Server
 var logger *log.Logger
 var shutdownWaitTime = time.Duration(1)
 var isTLS bool
+var awsSession *session.Session
 
 func init() {
 	isTLS = false
@@ -192,6 +202,13 @@ func main() {
 	fmt.Fprintf(os.Stderr, "%sConnected to Sqlite%s\n", MiscLib.ColorGreen, MiscLib.ColorReset)
 
 	// ------------------------------------------------------------------------------
+	// Setup connection to S3
+	// ------------------------------------------------------------------------------
+	if db_flag["push-to-aws"] {
+		awsSession = SetupS3(gCfg.S3_bucket, gCfg.S3_region)
+	}
+
+	// ------------------------------------------------------------------------------
 	// Setup to use the ledger and send stuff to Eth.
 	// ------------------------------------------------------------------------------
 	err = ConnectToEthereum()
@@ -200,6 +217,45 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Fprintf(os.Stderr, "%sConnected to Ethereum (Geth or Ganache)%s\n", MiscLib.ColorGreen, MiscLib.ColorReset)
+
+	// ------------------------------------------------------------------------------
+	// test code for contract calls - to verify we have contrct working.
+	// ------------------------------------------------------------------------------
+	if db_flag["test-contrct-calls"] {
+
+		if db_flag["test-set-data"] {
+			app := fmt.Sprintf("%x", HashStrings.HashStrings("app.signedcontract.com"))
+			name := "2b2ad1becfddd20ccdefaab5e9fd160512d29cf3"
+			sig := "28e7f16cc55c6b2f553e28830e62eb693ba630a1b951f5cf65dd61b9f2fb8b19db95e37afcf5eab20"
+			tx, err := gCfg.ASignedDataContract.SetData(app, name, sig)
+			if err != nil {
+				fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
+				return
+			}
+
+			txID := fmt.Sprintf("%x", tx)
+			fmt.Printf("txID [%s] tx [%s] err %s\n", txID, tx, err)
+		}
+
+		if db_flag["test-get-data"] {
+			app := fmt.Sprintf("%x", HashStrings.HashStrings("app.signedcontract.com"))
+			name := "2b2ad1becfddd20ccdefaab5e9fd160512d29cf3"
+			expected_sig := "28e7f16cc55c6b2f553e28830e62eb693ba630a1b951f5cf65dd61b9f2fb8b19db95e37afcf5eab20"
+			sig, err := gCfg.ASignedDataContract.GetData(app, name)
+			if err != nil {
+				fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
+				return
+			}
+
+			match := fmt.Sprintf("%sno%s", MiscLib.ColorRed, MiscLib.ColorReset)
+			if sig == expected_sig {
+				match := fmt.Sprintf("%syes%s", MiscLib.ColorGreen, MiscLib.ColorReset)
+			}
+			fmt.Printf("sig [%s] expected [%s] matched %s err %s\n", sig, expected, match, err)
+		}
+
+		os.Exit(0)
+	}
 
 	// ------------------------------------------------------------------------------
 	// Setup HTTP End Points

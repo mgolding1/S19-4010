@@ -122,6 +122,8 @@ func CreateTables() {
 		file_name			TEXT,
 		orig_file_name		TEXT,
 		url_file_name		TEXT,
+		hash			TEXT,
+		signature		TEXT,
 		txid				TEXT,
 		note 				TEXT,
  		updated 			DATETIME,

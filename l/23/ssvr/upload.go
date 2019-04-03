@@ -55,10 +55,21 @@ func UploadFileClosure(pth string) func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
+		// push file to AWS S3
+		if db_flag["push-to-aws"] {
+			err = AddFileToS3(awsSession, file_name, aws_file_name)
+			if err != nil {
+				fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
+				jsonResponse(w, http.StatusBadRequest, `{"status":"error","msg":"Failed to push file to S3."}`)
+				return
+			}
+		}
+
 		/*
-		   update "t_paper_docs" set "file_name" = $2, "orig_file_name" = $3 where "id" = $1, id=e02587d8-8084-4856-563e-806b92c2e2e9, file_name=./files/e8a864cb348747641cb1be134829f754515204347874550d316520dda0b37f78.jpg, orig_file_name=alaska.jpg aws_file_name=%!s(MISSING)
-		   		stmt := `update "documents" set "file_name" = $2, "orig_file_name" = $3 where "id" = $1`
-		   AT: File: /Users/corwin/go/src/github.com/Univ-Wyo-Education/S19-4010/l/23/ssvr/upload.go LineNo:63 err=no such table: t_paper_docs
+			   update "t_paper_docs" set "file_name" = $2, "orig_file_name" = $3 where "id" = $1, id=e02587d8-8084-4856-563e-806b92c2e2e9,
+					file_name=./files/e8a864cb348747641cb1be134829f754515204347874550d316520dda0b37f78.jpg, orig_file_name=alaska.jpg aws_file_name=%!s(MISSING)
+			   		stmt := `update "documents" set "file_name" = $2, "orig_file_name" = $3 where "id" = $1`
+			   AT: File: /Users/corwin/go/src/github.com/Univ-Wyo-Education/S19-4010/l/23/ssvr/upload.go LineNo:63 err=no such table: t_paper_docs
 		*/
 		stmt := `update "documents" set "file_name" = $2, "orig_file_name" = $3, "url_file_name" = $4 where "id" = $1`
 		fmt.Printf("stmt = %s, id=%s, file_name=%s, orig_file_name=%s\n", stmt, id, file_name, orig_file_name)
@@ -70,11 +81,35 @@ func UploadFileClosure(pth string) func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		_ = file_hash
+		// call contract at this point.
+		app := fmt.Sprintf("%x", HashStrings.HashStrings("app.signedcontract.com"))
+		msgHash, signature := SignMessage(file_hash, gCfg.AccountKey)
+		name := fmt.Sprintf("%x", msgHash)
+		sig := fmt.Sprintf("%x", signature)
+		if db_flag["call-contract"] {
 
-		// xyzzy - call contract at this point.
+			tx, err := gCfg.ASignedDataContract.SetData(app, name, sig)
+			if err != nil {
+				fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
+				jsonResponse(w, http.StatusBadRequest, fmt.Sprintf(`{"status":"error","msg":"Failed to call contract. error=%s"}`, err))
+				return
+			}
 
-		// itemID + Values
+			txID := fmt.Sprintf("%x", tx)
+			stmt = `update "documents" set "txid" = $2 where "id" = $1`
+			fmt.Printf("stmt = %s, id=%s, txID=%s\n", stmt, id, txID)
+
+			err = SqliteUpdate(stmt, id, txID)
+			if err != nil {
+				fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
+				jsonResponse(w, http.StatusBadRequest, fmt.Sprintf(`{"status":"error","msg":"Failed to save txID to PG. error=%s"}`, err))
+				return
+			}
+
+			jsonResponse(w, http.StatusCreated, fmt.Sprintf(`{"status":"success","txID":%q,"aws_file_name":%q,"id":%q}`, txID, aws_file_name, id))
+
+		}
+
 		/*
 				txID, id, err := ledger.Create(id, fmt.Sprintf(`{"v":"2","t":"paper-reg","h":%q}`, file_hash))
 				if err != nil {
@@ -83,15 +118,6 @@ func UploadFileClosure(pth string) func(w http.ResponseWriter, r *http.Request) 
 					return
 				}
 
-				stmt = `update "t_paper_docs" set "txid" = $2 where "id" = $1`
-				fmt.Printf("stmt = %s, id=%s, txID=%s\n", stmt, id, txID)
-
-				err = SQLUpdate(stmt, id, txID)
-				if err != nil {
-					fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
-					jsonResponse(w, http.StatusBadRequest, fmt.Sprintf(`{"status":"error","msg":"Failed to save txID to PG. error=%s"}`, err))
-					return
-				}
 			jsonResponse(w, http.StatusCreated, fmt.Sprintf(`{"status":"success","txID":%q,"aws_file_name":%q,"id":%q}`, txID, aws_file_name, id))
 		*/
 
@@ -129,4 +155,12 @@ func jsonResponse(w http.ResponseWriter, code int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	fmt.Fprint(w, message)
+}
+
+func SignMessage(hash string, key interface{}) (msgHash string, signature string) {
+	return
+}
+
+func ValidateMessage(file_name, hash string, key interface{}) error {
+	return nil
 }
