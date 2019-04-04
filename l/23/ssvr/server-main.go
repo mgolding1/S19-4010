@@ -249,9 +249,9 @@ func main() {
 
 			match := fmt.Sprintf("%sno%s", MiscLib.ColorRed, MiscLib.ColorReset)
 			if sig == expected_sig {
-				match := fmt.Sprintf("%syes%s", MiscLib.ColorGreen, MiscLib.ColorReset)
+				match = fmt.Sprintf("%syes%s", MiscLib.ColorGreen, MiscLib.ColorReset)
 			}
-			fmt.Printf("sig [%s] expected [%s] matched %s err %s\n", sig, expected, match, err)
+			fmt.Printf("sig [%s] expected [%s] matched %s err %s\n", sig, expected_sig, match, err)
 		}
 
 		os.Exit(0)

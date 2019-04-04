@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -13,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/pschlump/HashStrings"
 )
 
 // https://hanezu.github.io/posts/Enable-WebSocket-support-of-Ganache-CLI-and-Subscribe-to-Events.html
@@ -113,8 +113,7 @@ func NewSignedData(cfg *GlobalConfigData) (rv *SignedDataContract) {
 //	function setData ( uint256 _app, uint256 _name, bytes32 _data ) public needMinPayment payable {
 // From Go Code
 // func (_SignedDataVersion01 *SignedDataVersion01Transactor) SetData(opts *bind.TransactOpts, _app *big.Int, _name *big.Int, _data [32]byte) (*types.Transaction, error) {
-func (sdc *SignedDataContract) SetData(app, name, data string) (tx *types.Transaction, err error) {
-	var _data [32]byte
+func (sdc *SignedDataContract) SetData(app, name, sig string) (tx *types.Transaction, err error) {
 	_app, ok := big.NewInt(0).SetString(app, 16)
 	if !ok {
 		return nil, fmt.Errorf("Invalid app hex value: [%s]", app)
@@ -123,28 +122,64 @@ func (sdc *SignedDataContract) SetData(app, name, data string) (tx *types.Transa
 	if !ok {
 		return nil, fmt.Errorf("Invalid name hex value: [%s]", name)
 	}
-	tmp := HashStrings.HashStrings(data)
-	for i := 0; i < 32; i++ {
-		_data[i] = tmp[i]
+	// check that sig is 130 long ( signature should be 130 long )
+	if len(sig) != 130 {
+		return nil, fmt.Errorf("Invalid hex signature should be 130 long, actual length %d, value ->%s<-\n", len(sig), sig)
 	}
-	return sdc.Transactor.SetData(sdc.TransactorOpts, _app, _name, _data)
+	_dR, err := hex.DecodeString(sig[0:64])
+	if err != nil {
+		return nil, fmt.Errorf("Invalid name hex : [%s] error:%s", sig[0:64], err)
+	}
+	_dS, err := hex.DecodeString(sig[64:128])
+	if err != nil {
+		return nil, fmt.Errorf("Invalid name hex : [%s] error:%s", sig[64:128], err)
+	}
+	_dV, err := hex.DecodeString(sig[128:])
+	if err != nil {
+		return nil, fmt.Errorf("Invalid name hex : [%s] error:%s", sig[128:], err)
+	}
+	dR := ByteSliceToByte32(_dR)
+	dS := ByteSliceToByte32(_dS)
+	dV := ByteSliceToByte2(_dV)
+	return sdc.Transactor.SetData(sdc.TransactorOpts, _app, _name, dR, dS, dV)
+}
+
+func ByteSliceToByte32(x []byte) (rv [32]byte) {
+	for i := 0; i < 32 && i < len(x); i++ {
+		rv[i] = x[i]
+	}
+	return
+}
+
+func ByteSliceToByte2(x []byte) (rv [2]byte) {
+	for i := 0; i < 2 && i < len(x); i++ {
+		rv[i] = x[i]
+	}
+	return
 }
 
 // From Contract
 //	function getData ( uint256 _app, uint256 _name ) public view returns ( bytes32 ) {
 // From Go Code
 // func (_SignedDataVersion01 *SignedDataVersion01Caller) GetData(opts *bind.CallOpts, _app *big.Int, _name *big.Int) ([32]byte, error) {
-func (sdc *SignedDataContract) GetData(app, name string) (hash []byte, err error) {
+func (sdc *SignedDataContract) GetData(app, name string) (sig string, err error) {
 	_app, ok := big.NewInt(0).SetString(app, 16)
 	if !ok {
-		return nil, fmt.Errorf("Invalid app hex value: [%s]", app)
+		return "", fmt.Errorf("Invalid app hex value: [%s]", app)
 	}
 	_name, ok := big.NewInt(0).SetString(name, 16)
 	if !ok {
-		return nil, fmt.Errorf("Invalid name hex value: [%s]", name)
+		return "", fmt.Errorf("Invalid name hex value: [%s]", name)
 	}
-	hashTmp, err := sdc.Caller.GetData(sdc.CallerOpts, _app, _name)
-	return hashTmp[:], err
+	dR, dS, dV, err := sdc.Caller.GetData(sdc.CallerOpts, _app, _name)
+	hashS := fmt.Sprintf("%x%x%x", dR, dS, dV)
+	if len(hashS) != 130 {
+		err = fmt.Errorf("Invalid hex signature should be 130 long, actual length %d, value ->%s<-\n", len(hashS), hashS)
+		return
+	}
+	sig = hashS
+	err = nil
+	return
 }
 
 // DecryptKeyFile reads in a key file decrypt it with the password.

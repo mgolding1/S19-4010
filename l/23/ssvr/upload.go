@@ -1,12 +1,16 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
 
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pschlump/HashStrings"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
@@ -83,7 +87,10 @@ func UploadFileClosure(pth string) func(w http.ResponseWriter, r *http.Request) 
 
 		// call contract at this point.
 		app := fmt.Sprintf("%x", HashStrings.HashStrings("app.signedcontract.com"))
-		msgHash, signature := SignMessage(file_hash, gCfg.AccountKey)
+		msgHash, signature, err := SignMessage(file_hash, gCfg.AccountKey)
+		if err != nil {
+			// xyzzy -- TODO // xyzzy -- TODO // xyzzy -- TODO // xyzzy -- TODO // xyzzy -- TODO // xyzzy -- TODO // xyzzy -- TODO // xyzzy -- TODO // xyzzy -- TODO // xyzzy -- TODO
+		}
 		name := fmt.Sprintf("%x", msgHash)
 		sig := fmt.Sprintf("%x", signature)
 		if db_flag["call-contract"] {
@@ -151,16 +158,79 @@ func saveFile(w http.ResponseWriter, file multipart.File, handle *multipart.File
 	return
 }
 
+func HashFile(file_name string) (file_hash string, err error) {
+	var data []byte
+	data, err = ioutil.ReadFile(file_name)
+	if err != nil {
+		err = fmt.Errorf(`Failed to read file. error:%s`, err)
+		return
+	}
+
+	file_hash_byte := HashStrings.HashBytes(data)
+	file_hash = fmt.Sprintf("%x", file_hash_byte)
+	return
+}
+
 func jsonResponse(w http.ResponseWriter, code int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	fmt.Fprint(w, message)
 }
 
-func SignMessage(hash string, key interface{}) (msgHash string, signature string) {
+func SignMessage(message string, key *keystore.Key) (msgHash string, signature string, err error) {
+	rawSignature, err := crypto.Sign(signHash([]byte(message)), key.PrivateKey) // Sign Raw Bytes, Return hex of Raw Bytes
+	if err != nil {
+		return "", "", fmt.Errorf("unable to sign message Error:%s", err)
+	}
+	signature = hex.EncodeToString(rawSignature)
+	return message, signature, nil
+}
+
+func ValidateMessage(file_name, sig string, key *keystore.Key) error {
+	msg, err := HashFile(file_name)
+	if err != nil {
+		return err
+	}
+	_, _, err = VerifySignature(gCfg.FromAddress, sig, msg)
+	return err
+}
+
+// VerifySignature takes hex encoded addr, sig and msg and verifies that the signature matches with the address.
+func VerifySignature(addr, sig, msg string) (recoveredAddress, recoveredPublicKey string, err error) {
+	message, err := hex.DecodeString(msg)
+	if err != nil {
+		return "", "", fmt.Errorf("unabgle to decode message (invalid hex data) Error:%s", err)
+	}
+	if !common.IsHexAddress(addr) {
+		return "", "", fmt.Errorf("invalid address: %s", addr)
+	}
+	address := common.HexToAddress(addr)
+	signature, err := hex.DecodeString(sig)
+	if err != nil {
+		return "", "", fmt.Errorf("signature is not valid hex Error:%s", err)
+	}
+
+	recoveredPubkey, err := crypto.SigToPub(signHash([]byte(message)), signature)
+	if err != nil || recoveredPubkey == nil {
+		return "", "", fmt.Errorf("signature verification failed Error:%s", err)
+	}
+	recoveredPublicKey = hex.EncodeToString(crypto.FromECDSAPub(recoveredPubkey))
+	rawRecoveredAddress := crypto.PubkeyToAddress(*recoveredPubkey)
+	if address != rawRecoveredAddress {
+		return "", "", fmt.Errorf("signature did not verify, addresses did not match")
+	}
+	recoveredAddress = rawRecoveredAddress.Hex()
 	return
 }
 
-func ValidateMessage(file_name, hash string, key interface{}) error {
-	return nil
+// signHash is a helper function that calculates a hash for the given message
+// that can be safely used to calculate a signature from.
+//
+// The hash is calulcated as
+//   keccak256("\x19Ethereum Signed Message:\n"${message length}${message}).
+//
+// This gives context to the signed message and prevents signing of transactions.
+func signHash(data []byte) []byte {
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	return crypto.Keccak256([]byte(msg))
 }
