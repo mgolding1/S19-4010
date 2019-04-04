@@ -141,7 +141,27 @@ func (sdc *SignedDataContract) SetData(app, name, sig string) (tx *types.Transac
 	dR := ByteSliceToByte32(_dR)
 	dS := ByteSliceToByte32(_dS)
 	dV := ByteSliceToByte2(_dV)
-	return sdc.Transactor.SetData(sdc.TransactorOpts, _app, _name, dR, dS, dV)
+
+	/*
+	   // TransactOpts is the collection of authorization data required to create a
+	   // valid Ethereum transaction.
+	   type TransactOpts struct {
+	   	From   common.Address // Ethereum account to send the transaction from
+	   	Nonce  *big.Int       // Nonce to use for the transaction execution (nil = use pending state)
+	   	Signer SignerFn       // Method to use for signing the transaction (mandatory)
+
+	   	Value    *big.Int // Funds to transfer along along the transaction (nil = 0 = no funds)
+	   	GasPrice *big.Int // Gas price to use for the transaction execution (nil = gas price oracle)
+	   	GasLimit uint64   // Gas limit to set for the transaction execution (0 = estimate)
+
+	   	Context context.Context // Network context to support cancellation and timeouts (nil = no timeout)
+	   }
+	*/
+	sdc.TransactorOpts.Value = big.NewInt(1000)
+	sdc.TransactorOpts.GasLimit = 4712388
+	tx, err = sdc.Transactor.SetData(sdc.TransactorOpts, _app, _name, dR, dS, dV)
+	sdc.TransactorOpts.Value = nil
+	return
 }
 
 func ByteSliceToByte32(x []byte) (rv [32]byte) {
@@ -172,7 +192,7 @@ func (sdc *SignedDataContract) GetData(app, name string) (sig string, err error)
 		return "", fmt.Errorf("Invalid name hex value: [%s]", name)
 	}
 	dR, dS, dV, err := sdc.Caller.GetData(sdc.CallerOpts, _app, _name)
-	hashS := fmt.Sprintf("%x%x%x", dR, dS, dV)
+	hashS := fmt.Sprintf("%x%x%s", dR, dS, fmt.Sprintf("%x", dV)[2:])
 	if len(hashS) != 130 {
 		err = fmt.Errorf("Invalid hex signature should be 130 long, actual length %d, value ->%s<-\n", len(hashS), hashS)
 		return

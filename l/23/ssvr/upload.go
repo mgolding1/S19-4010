@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pschlump/HashStrings"
+	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
 )
@@ -178,7 +179,11 @@ func jsonResponse(w http.ResponseWriter, code int, message string) {
 }
 
 func SignMessage(message string, key *keystore.Key) (msgHash string, signature string, err error) {
-	rawSignature, err := crypto.Sign(signHash([]byte(message)), key.PrivateKey) // Sign Raw Bytes, Return hex of Raw Bytes
+	messageByte, err := hex.DecodeString(message)
+	if err != nil {
+		return "", "", fmt.Errorf("unabgle to decode message (invalid hex data) Error:%s", err)
+	}
+	rawSignature, err := crypto.Sign(signHash(messageByte), key.PrivateKey) // Sign Raw Bytes, Return hex of Raw Bytes
 	if err != nil {
 		return "", "", fmt.Errorf("unable to sign message Error:%s", err)
 	}
@@ -188,6 +193,9 @@ func SignMessage(message string, key *keystore.Key) (msgHash string, signature s
 
 func ValidateMessage(file_name, sig string, key *keystore.Key) error {
 	msg, err := HashFile(file_name)
+	if db_flag["ValidateMessage"] {
+		fmt.Printf("hash from reading file [%s]\n", msg)
+	}
 	if err != nil {
 		return err
 	}
@@ -210,12 +218,19 @@ func VerifySignature(addr, sig, msg string) (recoveredAddress, recoveredPublicKe
 		return "", "", fmt.Errorf("signature is not valid hex Error:%s", err)
 	}
 
+	if db_flag["ValidateMessage"] {
+		fmt.Printf("AT: %s\n", godebug.LF())
+	}
+
 	recoveredPubkey, err := crypto.SigToPub(signHash([]byte(message)), signature)
 	if err != nil || recoveredPubkey == nil {
 		return "", "", fmt.Errorf("signature verification failed Error:%s", err)
 	}
 	recoveredPublicKey = hex.EncodeToString(crypto.FromECDSAPub(recoveredPubkey))
 	rawRecoveredAddress := crypto.PubkeyToAddress(*recoveredPubkey)
+	if db_flag["ValidateMessage"] {
+		fmt.Printf("AT: %s recoveredPublicKey: [%s] recoved address [%x] compare to [%x]\n", godebug.LF(), recoveredPublicKey, rawRecoveredAddress, address)
+	}
 	if address != rawRecoveredAddress {
 		return "", "", fmt.Errorf("signature did not verify, addresses did not match")
 	}
@@ -233,4 +248,51 @@ func VerifySignature(addr, sig, msg string) (recoveredAddress, recoveredPublicKe
 func signHash(data []byte) []byte {
 	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
 	return crypto.Keccak256([]byte(msg))
+}
+
+func HandleValidateDocument(www http.ResponseWriter, req *http.Request) {
+
+	if !IsAuthKeyValid(www, req) {
+		fmt.Printf("%sAT: %s api_key wrong\n%s", MiscLib.ColorRed, godebug.LF(), MiscLib.ColorReset)
+		return
+	}
+
+	// parameters id= Id of the document - use to get signature info, file name etc.
+	found, id := GetVar("id", www, req)
+	if !found || id == "" {
+		www.WriteHeader(406) // Invalid Request
+		return
+	}
+
+	// xyzzy - use GetData off of chain?
+
+	stmt := "select file_name, hash, signature from documents where id = $1"
+	var file_name, msg, sig string
+	err := SqliteQueryRow(stmt, id).Scan(&file_name, &msg, &sig)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error fetching return data form ->%s<- id=%s error %s at %s\n", stmt, id, err, godebug.LF())
+		www.WriteHeader(http.StatusInternalServerError) // 500
+		return
+	}
+	if db_flag["HandleValidateDocument"] {
+		fmt.Printf("AT:%s document_file_name [%s] hash [%s] signature [%s]\n", godebug.LF(), file_name, msg, sig)
+	}
+
+	// Check signature, if ok then JSON {success}
+	rv := `{"status":"success"}`
+	err = ValidateMessage(file_name, sig, gCfg.AccountKey)
+	if err != nil {
+		rv = `{"status":"error","msg":"signature did not verify"}`
+	}
+	if db_flag["HandleValidateDocument"] {
+		fmt.Printf("AT:%s rv [%s]\n", godebug.LF(), rv)
+	}
+
+	if isTLS {
+		www.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	}
+	www.Header().Set("Content-Type", "application/json; charset=utf-8")
+	www.WriteHeader(http.StatusOK) // 200
+	fmt.Fprintf(www, "%s", rv)
+	return
 }

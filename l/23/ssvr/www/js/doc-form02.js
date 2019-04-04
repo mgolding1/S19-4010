@@ -48,11 +48,12 @@ function renderDoc(id){
 		$("#form25-render").click(renderForm25); 	// Attach to link to paint the partial
 		return
 	}
+
 	// take list of data, pull out "id"
 	// if .pdf, if image etc. -- set theDocument for correct data to render.
 	// remeber document history! -- When Signed, Digital Signature etc.
 	theHistory = "<h1> History of Document </h1>";
-	theDocument = "<h1> Placeholder xyzzy in form02 </h1>";
+	theDocument = "<h1> Placeholder form02 </h1>";
 	var found = false;
 	var data = {};
 	for ( var i = 0, mx = search_data.length; i < mx; i++ ) {
@@ -64,6 +65,7 @@ function renderDoc(id){
 	if ( ! found ) {
 		theHistory = "<h1> Document Not Found </h1>";
 		theDocument = "";
+		renderForm02();
 	} else {
 		theHistory = [ ''
 			,'<table class="doc-history">'
@@ -89,7 +91,50 @@ function renderDoc(id){
 		].join("\n");
 	}
 
-	renderForm02();
+	// renderForm02();
+	// TODO Do Validation of "Signature" on documet at this point!
+	// 		mux.Handle("/api/v1/validate-document", http.HandlerFunc(HandleStatus)) // xyzzy - TODO - validate a document before paint of .pdf
+
+	var data = {
+		  "auth_key"		: g_auth_key
+		, "id"				: id
+		, "_ran_" 			: ( Math.random() * 10000000 ) % 10000000
+	};
+	submitItData ( event, data, "/api/v1/validate-document", function(data){
+			if ( data && data.status && data.status == "success" ) {
+				renderForm02();
+			} else {
+				console.log ( "ERROR: ", data );
+				theHistory = [ ''
+					,'<table class="doc-history">'
+						,'<tr>'
+							,'<th>Name</th><td>',data.real_name,'</td>'
+						,'</tr>'
+						,'<tr>'
+							,'<th>Created</th><td>',data.created,'</td>'
+						,'</tr>'
+						,'<tr>'
+							,'<th>Address</th><td>',data.address_usps,'</td>'
+						,'</tr>'
+						,'<tr>'
+							,'<th>File Name</th><td>',data.orig_file_name,'</td>'
+						,'</tr>'
+						,'<tr>'
+							,'<th>Digital Signature</th><td><br><b>Signature DID NOT Validate</b></td>'	
+						,'</tr>'
+					,'</table>'
+				].join("\n");
+				theDocument = [ ''
+					,'<iframe src="/viewer.html?file=',data.url_file_name,'" width="100%" height="800px"></iframe>'
+				].join("\n");
+				renderForm02();
+			}
+		}, function(data) {
+				console.log ( "ERROR: ", data );
+				renderError ( "Network communication failed.", "Failed to communicate with the server." );
+		}
+	);
+
 }
 
 

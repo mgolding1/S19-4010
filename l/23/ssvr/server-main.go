@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -23,12 +24,12 @@ import (
 	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
-	// "github.com/Univ-Wyo-Education/S19-4010/a/07/eth/lib/SignedDataVersion01"
 )
 
 // ----------------------------------------------------------------------------------
 // Notes:
 //   Graceful Shutdown: https://stackoverflow.com/questions/39320025/how-to-stop-http-listenandserve
+// "github.com/Univ-Wyo-Education/S19-4010/a/07/eth/lib/SignedDataVersion01"
 // ----------------------------------------------------------------------------------
 
 var Cfg = flag.String("cfg", "cfg.json", "config file for this call")
@@ -49,6 +50,13 @@ type GlobalConfigData struct {
 	//		HandleCRUD.GenWhere			CRUD generating "where" clause
 	//		HandleCRUDSP				CRUD calling stored procedures
 	//		IsAuthKeyValid				Check of 'auth_key'
+	//		ValidateMessage				Ouptut form ValidateMessage and VerifySignature
+	//
+	//		test-contrct-calls			flag to turn on for tests in main program.
+	//		test-test-signature			test of signatures
+	//		test-set-data				test call to contract `setData`
+	//		test-get-data				test call to contract `getData` requires test-set-data first.
+	//
 	//		dump-db-flag				Dump flags turned on.
 	DebugFlag string `json:"db_flag"`
 
@@ -56,7 +64,7 @@ type GlobalConfigData struct {
 
 	// S3 login/config options.
 	// Also uses
-	//		AWS_ACCESS_KEY_ID=AKIAJZDMAULPRXT7CVWA		((example))
+	//		AWS_ACCESS_KEY_ID=AKIAJZ...........VWA		((example))
 	//		AWS_SECRET_KEY=........
 	S3_bucket string `json:"s3_bucket" default:"acb-document"`
 	S3_region string `json:"s3_bucket" default:"$ENV$AWS_REGION"`
@@ -223,10 +231,49 @@ func main() {
 	// ------------------------------------------------------------------------------
 	if db_flag["test-contrct-calls"] {
 
+		// ------------------------------------------------------------------------------
+		// Sign a file, then - validate signature
+		// ------------------------------------------------------------------------------
+		if db_flag["test-test-signature"] {
+
+			// read test file
+			file_name := "./testdata/other.log"
+			data, err := ioutil.ReadFile(file_name)
+
+			// Sign
+			message := fmt.Sprintf("%x", HashStrings.HashByte(data)) // Sign the Hash of the file.
+			msgHash, sig, err := SignMessage(message, gCfg.AccountKey)
+			fmt.Printf("Signature: msgHash [%s] signature[%s] err %s\n", msgHash, sig, err)
+
+			// Verify
+			err = ValidateMessage(file_name, sig, gCfg.AccountKey)
+			if err != nil {
+				fmt.Printf("%sFAIL - failed to verify signature for file: %s AT:%s%s\n", MiscLib.ColorRed, err, godebug.LF(), MiscLib.ColorReset)
+				os.Exit(1)
+			}
+
+		}
+
+		if db_flag["test-fake-signature"] {
+
+			file_name := "./www/files/7f4abfea5686f2d3c00d27b47465e4b4f8a7e3b984ba6ef94770f7ed5cd9566b.pdf"
+
+			msg, err := HashFile(file_name)
+			fmt.Printf("hash from reading file [%s]\n", msg)
+
+			// func SignMessage(message string, key *keystore.Key) (msgHash string, signature string, err error) {
+			msgHash, sig, err := SignMessage(msg, gCfg.AccountKey)
+			fmt.Printf("msgHash [%s] signature [%s] err [%s]\n", msgHash, sig, err)
+
+			os.Exit(0)
+		}
+
+		app := fmt.Sprintf("%x", HashStrings.HashStrings("app.signedcontract.com"))
+		name := "746865206d65737361676520746f207369676e"
+		sig := "8c2484fc01b9445cad2c458215849736bc64ecc8cd9499a4ce3353e300ea7a5a751f0f1172279b0809156aa18e824ef64e886cfff4baeeed21d09a7d3326c8bb00"
+		expected_sig := sig
+
 		if db_flag["test-set-data"] {
-			app := fmt.Sprintf("%x", HashStrings.HashStrings("app.signedcontract.com"))
-			name := "2b2ad1becfddd20ccdefaab5e9fd160512d29cf3"
-			sig := "28e7f16cc55c6b2f553e28830e62eb693ba630a1b951f5cf65dd61b9f2fb8b19db95e37afcf5eab20"
 			tx, err := gCfg.ASignedDataContract.SetData(app, name, sig)
 			if err != nil {
 				fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
@@ -234,13 +281,10 @@ func main() {
 			}
 
 			txID := fmt.Sprintf("%x", tx)
-			fmt.Printf("txID [%s] tx [%s] err %s\n", txID, tx, err)
+			fmt.Printf("txID [%s] tx [%s] err %s AT:%s\n", godebug.SVarI(txID), godebug.SVarI(tx), err, godebug.LF())
 		}
 
 		if db_flag["test-get-data"] {
-			app := fmt.Sprintf("%x", HashStrings.HashStrings("app.signedcontract.com"))
-			name := "2b2ad1becfddd20ccdefaab5e9fd160512d29cf3"
-			expected_sig := "28e7f16cc55c6b2f553e28830e62eb693ba630a1b951f5cf65dd61b9f2fb8b19db95e37afcf5eab20"
 			sig, err := gCfg.ASignedDataContract.GetData(app, name)
 			if err != nil {
 				fmt.Printf("AT: %s err=%v\n", godebug.LF(), err)
@@ -251,21 +295,24 @@ func main() {
 			if sig == expected_sig {
 				match = fmt.Sprintf("%syes%s", MiscLib.ColorGreen, MiscLib.ColorReset)
 			}
-			fmt.Printf("sig [%s] expected [%s] matched %s err %s\n", sig, expected_sig, match, err)
+			fmt.Printf("sig [%s] expected [%s] matched %s err %s AT:%s\n", sig, expected_sig, match, err, godebug.LF())
 		}
 
-		os.Exit(0)
+		if db_flag["test-set-data"] || db_flag["test-get-data"] {
+			os.Exit(0)
+		}
 	}
 
 	// ------------------------------------------------------------------------------
 	// Setup HTTP End Points
 	// ------------------------------------------------------------------------------
 	mux := http.NewServeMux()
-	mux.Handle("/api/v1/status", http.HandlerFunc(HandleStatus))          //
-	mux.Handle("/status", http.HandlerFunc(HandleStatus))                 //
-	mux.Handle("/api/v1/exit-server", http.HandlerFunc(HandleExitServer)) //
-	mux.Handle("/login", http.HandlerFunc(HandleLogin))                   // !! not a real login - just retruns success !!
-	mux.HandleFunc("/upload", UploadFileClosure(gCfg.UploadPath))         // URL to upload files with multi-part mime data type
+	mux.Handle("/api/v1/status", http.HandlerFunc(HandleStatus))                      //
+	mux.Handle("/status", http.HandlerFunc(HandleStatus))                             //
+	mux.Handle("/api/v1/exit-server", http.HandlerFunc(HandleExitServer))             //
+	mux.Handle("/login", http.HandlerFunc(HandleLogin))                               // !! not a real login - just retruns success !!
+	mux.HandleFunc("/upload", UploadFileClosure(gCfg.UploadPath))                     // URL to upload files with multi-part mime data type
+	mux.Handle("/api/v1/validate-document", http.HandlerFunc(HandleValidateDocument)) // validate a document before paint of .pdf
 
 	mux.Handle("/api/v1/save-data", http.HandlerFunc(HandleStatus))   // xyzzy - TODO - save data to on-chain (uses setData) new app+name+hash
 	mux.Handle("/api/v1/add-to-data", http.HandlerFunc(HandleStatus)) // xyzzy - TODO - Add a new document to chain with "EventName" Some events are final and can not be repeated.

@@ -1,9 +1,10 @@
 {
-	"db_flag": "HandleCRUD,OtherFlag",
+	"db_flag": "HandleValidateDocument",
+	"x_db_flag": "HandleCRUD,ValidateMessage,test-contrct-calls,test-test-signature,test-set-data,test-get-data",
 	"log_file_name": "./log/log.out",
 	"auth_key": "1234",
 	"ContractAddress" : {
-		"SignedData": "0x72D0f0E20e38CF6f550D5879dE5428f851cD9482"
+		"SignedData": "0x679F84157dC17deE7d35Dbd2849e9E6139e328b0"
 	},
-	"FromAddress": "0xc0c4B94355fD676a29856008e625B51d1acD04eD"
+	"FromAddress": "0x1d217e902Bc1deB2e75D1Ec44bcAE03A1227a126"
 }
